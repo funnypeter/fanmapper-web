@@ -129,35 +129,23 @@ export default function WikiPage() {
         ))}
       </div>
 
-      {/* Page grid with thumbnails */}
+      {/* Page list */}
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : pages.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {pages.map((p) => {
-            const thumb = thumbnails[p.pageId];
-            return (
-              <Link
-                key={p.pageId}
-                href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
-                className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
-              >
-                {thumb ? (
-                  <img src={thumb} alt={p.title} className="w-full aspect-square object-cover" />
-                ) : (
-                  <div className="w-full aspect-square bg-surface-elevated flex items-center justify-center text-3xl text-text-muted">
-                    {SECTION_ICONS[activeSection === "search" ? "items" : activeSection] ?? "📄"}
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="font-medium text-sm text-white leading-tight">{p.title}</p>
-                </div>
-              </Link>
-            );
-          })}
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {pages.map((p) => (
+            <Link
+              key={p.pageId}
+              href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
+              className="card-glass px-4 py-3 flex items-center justify-between hover:border-primary/30 transition group"
+            >
+              <span className="font-medium text-sm group-hover:text-primary transition">{p.title}</span>
+              <span className="text-text-muted text-xs">→</span>
+            </Link>
+          ))}
         </div>
       ) : (
         <div className="text-center py-16">
