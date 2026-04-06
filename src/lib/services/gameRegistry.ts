@@ -20,6 +20,7 @@ export interface GameWikiConfig {
   };
   infoboxTemplates: Record<string, string>;
   maps: string[];
+  mapUrl?: string; // External interactive map URL to embed
 }
 
 export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
@@ -32,6 +33,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Characters", items: "Items", weapons: "Weapons", armor: "Armor", locations: "Locations", bosses: "Bosses", quests: "Quests" },
     infoboxTemplates: { character: "Infobox character", weapon: "Infobox weapon", boss: "Infobox boss" },
     maps: ["The Lands Between"],
+    mapUrl: "https://eldenring.wiki.fextralife.com/Interactive+Map",
   },
   "skyrim": {
     gameTitle: "The Elder Scrolls V: Skyrim",
@@ -42,6 +44,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Skyrim: Characters", items: "Skyrim: Items", weapons: "Skyrim: Weapons", armor: "Skyrim: Armor", locations: "Skyrim: Locations", quests: "Skyrim: Quests" },
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Skyrim Map"],
+    mapUrl: "https://srmap.uesp.net/",
   },
   "fallout-4": {
     gameTitle: "Fallout 4",
@@ -52,6 +55,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Fallout 4 characters", items: "Fallout 4 items", weapons: "Fallout 4 weapons", armor: "Fallout 4 armor and clothing", locations: "Fallout 4 locations", quests: "Fallout 4 quests" },
     infoboxTemplates: { character: "Infobox character", weapon: "Infobox item" },
     maps: ["Commonwealth Map"],
+    mapUrl: "https://fo4map.com/",
   },
   "genshin-impact": {
     gameTitle: "Genshin Impact",
@@ -62,6 +66,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Playable Characters", items: "Items", weapons: "Weapons", locations: "Locations", bosses: "Bosses", quests: "Archon Quests" },
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Teyvat Interactive Map"],
+    mapUrl: "https://act.hoyolab.com/ys/app/interactive-map/index.html",
   },
   "zelda-totk": {
     gameTitle: "Zelda: Tears of the Kingdom",
@@ -72,6 +77,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Tears of the Kingdom Characters", items: "Tears of the Kingdom Items", weapons: "Tears of the Kingdom Weapons", locations: "Tears of the Kingdom Locations", bosses: "Tears of the Kingdom Bosses" },
     infoboxTemplates: { character: "Infobox Character", item: "Infobox Item" },
     maps: ["Hyrule Map"],
+    mapUrl: "https://www.zeldadungeon.net/tears-of-the-kingdom-interactive-map/",
   },
   "witcher-3": {
     gameTitle: "The Witcher 3: Wild Hunt",
