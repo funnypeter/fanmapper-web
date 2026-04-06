@@ -289,17 +289,43 @@ export default function GameDetailPage() {
         </div>
       )}
 
-      {/* Track Progress — only for supported games */}
+      {/* Quick action cards */}
       {wikiKey && (
-        <Link href={`/wiki/${wikiKey}`}
-          className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group">
-          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
-          <div className="flex-1">
-            <p className="font-semibold group-hover:text-primary transition">Track Progress</p>
-            <p className="text-sm text-text-secondary">Characters, items, bosses, locations &amp; more</p>
-          </div>
-          <span className="text-primary text-lg">→</span>
-        </Link>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <Link href={`/wiki/${wikiKey}`}
+            className="card-glass p-5 flex items-center gap-4 hover:border-primary/30 transition group">
+            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center text-xl shrink-0">📖</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm group-hover:text-primary transition">Track Progress</p>
+              <p className="text-xs text-text-muted">Wiki checklists</p>
+            </div>
+            <span className="text-primary">→</span>
+          </Link>
+
+          {wikiConfig?.maps && wikiConfig.maps.length > 0 && (
+            <Link href={`/map/${wikiKey}`}
+              className="card-glass p-5 flex items-center gap-4 hover:border-accent/30 transition group">
+              <div className="w-11 h-11 rounded-xl bg-accent/15 flex items-center justify-center text-xl shrink-0">🗺️</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm group-hover:text-accent transition">Interactive Map</p>
+                <p className="text-xs text-text-muted">Explore the world</p>
+              </div>
+              <span className="text-accent">→</span>
+            </Link>
+          )}
+
+          {inLibrary && (
+            <Link href={`/game/${gameId}/achievements`}
+              className="card-glass p-5 flex items-center gap-4 hover:border-xp/30 transition group">
+              <div className="w-11 h-11 rounded-xl bg-xp/15 flex items-center justify-center text-xl shrink-0">🏆</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm group-hover:text-xp transition">Achievements</p>
+                <p className="text-xs text-text-muted">Track trophies</p>
+              </div>
+              <span className="text-xp">→</span>
+            </Link>
+          )}
+        </div>
       )}
 
       {/* Videos — horizontal scroll */}
