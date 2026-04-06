@@ -125,17 +125,36 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
   },
 };
 
+// Also match by IGDB ID
+export function findWikiConfigByIgdbId(igdbId: string): { key: string; config: GameWikiConfig } | null {
+  for (const [key, config] of Object.entries(GAME_REGISTRY)) {
+    if (config.igdbId === igdbId) return { key, config };
+  }
+  return null;
+}
+
 export function findWikiConfig(gameTitle: string): GameWikiConfig | null {
   const lower = gameTitle.toLowerCase();
+
+  // Exact key match
   for (const [key, config] of Object.entries(GAME_REGISTRY)) {
-    if (lower.includes(key.replace(/-/g, " ")) || config.gameTitle.toLowerCase().includes(lower) || lower.includes(config.gameTitle.toLowerCase())) {
+    if (lower === config.gameTitle.toLowerCase()) return config;
+  }
+
+  // Key-in-title match
+  for (const [key, config] of Object.entries(GAME_REGISTRY)) {
+    const keyWords = key.replace(/-/g, " ");
+    if (lower.includes(keyWords) || config.gameTitle.toLowerCase().includes(lower) || lower.includes(config.gameTitle.toLowerCase())) {
       return config;
     }
   }
-  // Partial match on significant words
+
+  // Partial match — require at least 2 significant words to match to avoid false positives
   for (const config of Object.values(GAME_REGISTRY)) {
-    const words = config.gameTitle.toLowerCase().split(/[\s:]+/).filter((w) => w.length > 3);
-    if (words.some((w) => lower.includes(w))) return config;
+    const words = config.gameTitle.toLowerCase().split(/[\s:()]+/).filter((w) => w.length > 3);
+    const matchCount = words.filter((w) => lower.includes(w)).length;
+    if (matchCount >= 2 || (words.length === 1 && matchCount === 1)) return config;
   }
+
   return null;
 }

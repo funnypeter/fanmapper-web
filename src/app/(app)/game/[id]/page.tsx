@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { findWikiConfig, GAME_REGISTRY } from "@/lib/services/gameRegistry";
+import { findWikiConfig, findWikiConfigByIgdbId, GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import ReviewSection from "@/components/ReviewSection";
 
 interface GameData {
@@ -157,8 +157,10 @@ export default function GameDetailPage() {
     return <p className="text-text-secondary text-center py-20">Game not found</p>;
   }
 
-  const wikiConfig = findWikiConfig(game.title);
-  const wikiKey = wikiConfig ? Object.entries(GAME_REGISTRY).find(([, v]) => v === wikiConfig)?.[0] : null;
+  // Match by IGDB ID first (most reliable), then by title
+  const byId = findWikiConfigByIgdbId(gameId);
+  const wikiConfig = byId?.config ?? findWikiConfig(game.title);
+  const wikiKey = byId?.key ?? (wikiConfig ? Object.entries(GAME_REGISTRY).find(([, v]) => v === wikiConfig)?.[0] : null);
   const inLibrary = !!userGame;
 
   return (
