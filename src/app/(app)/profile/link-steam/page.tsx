@@ -201,7 +201,15 @@ export default function LinkSteamPage() {
             <p className="text-text-secondary mt-2">
               {result.games} games · {result.achievements} achievements
             </p>
-            <Link href="/library" className="btn-primary inline-block mt-6 text-sm">View Library</Link>
+            <div className="flex gap-3 justify-center mt-6">
+              <Link href="/library" className="btn-primary text-sm">View Library</Link>
+              <button
+                onClick={() => { setResult(null); setProgress(null); }}
+                className="px-4 py-2 rounded-xl border border-border text-sm text-text-secondary hover:text-foreground transition"
+              >
+                Re-sync
+              </button>
+            </div>
           </div>
         )}
       </div>
