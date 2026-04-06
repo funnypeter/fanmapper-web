@@ -5,18 +5,14 @@ import Link from "next/link";
 import { searchGames } from "@/lib/services/igdb";
 import type { IGDBGame } from "@/lib/services/igdb";
 
-const TRENDING_GAMES = [
-  { id: "igdb-119171", title: "Elden Ring", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", genre: "Action RPG" },
-  { id: "igdb-119133", title: "Zelda: TotK", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", genre: "Adventure" },
-  { id: "igdb-1942", title: "The Witcher 3", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg", genre: "RPG" },
-  { id: "igdb-1020", title: "GTA V", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg", genre: "Action" },
-  { id: "igdb-427520", title: "Genshin Impact", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3s3x.jpg", genre: "Action RPG" },
-  { id: "igdb-472", title: "The Elder Scrolls V: Skyrim", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tnw.jpg", genre: "RPG" },
-  { id: "igdb-9630", title: "Fallout 4", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg", genre: "Action RPG" },
-  { id: "igdb-732", title: "God of War", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tmu.jpg", genre: "Action" },
-  { id: "igdb-115278", title: "Hades", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co2hct.jpg", genre: "Roguelike" },
-  { id: "igdb-113112", title: "Stardew Valley", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/xrpmydnu9rpxvxfjkiu7.jpg", genre: "Simulation" },
-];
+import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
+
+const TRENDING_GAMES = Object.values(GAME_REGISTRY).map((config) => ({
+  id: config.igdbId,
+  title: config.gameTitle,
+  cover: config.cover,
+  genre: config.genre,
+}));
 
 const GENRES = ["RPG", "Action", "Adventure", "Shooter", "Strategy", "Indie", "Horror", "Platformer", "Sports", "Racing"];
 

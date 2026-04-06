@@ -1,37 +1,12 @@
 import Link from "next/link";
+import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
 
-const FEATURED_GAMES = [
-  {
-    title: "Elden Ring",
-    slug: "elden-ring",
-    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg",
-    genre: "Action RPG",
-  },
-  {
-    title: "The Elder Scrolls V: Skyrim",
-    slug: "skyrim",
-    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tnw.jpg",
-    genre: "Open World RPG",
-  },
-  {
-    title: "Fallout 4",
-    slug: "fallout-4",
-    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg",
-    genre: "Action RPG",
-  },
-  {
-    title: "Genshin Impact",
-    slug: "genshin-impact",
-    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3s3x.jpg",
-    genre: "Action RPG",
-  },
-  {
-    title: "Zelda: Tears of the Kingdom",
-    slug: "zelda-totk",
-    cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg",
-    genre: "Adventure",
-  },
-];
+const FEATURED_GAMES = Object.entries(GAME_REGISTRY).slice(0, 5).map(([slug, config]) => ({
+  title: config.gameTitle,
+  slug,
+  cover: config.cover,
+  genre: config.genre,
+}));
 
 const FEATURES = [
   {

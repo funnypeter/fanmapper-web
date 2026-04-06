@@ -6,19 +6,10 @@ import Link from "next/link";
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import { getCategory, searchWiki } from "@/lib/services/fandom";
 
-type Section = "characters" | "items" | "weapons" | "locations" | "bosses" | "quests";
-
 const SECTION_ICONS: Record<string, string> = {
   characters: "👤", items: "📦", weapons: "⚔️", armor: "🛡️",
   locations: "📍", bosses: "💀", quests: "📜", walkthroughs: "🗺️",
-};
-
-const COVER_MAP: Record<string, string> = {
-  "elden-ring": "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg",
-  "skyrim": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tnw.jpg",
-  "fallout-4": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg",
-  "genshin-impact": "https://images.igdb.com/igdb/image/upload/t_cover_big/co3s3x.jpg",
-  "zelda-totk": "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg",
+  boons: "✨", fish: "🐟", crops: "🌾", missions: "🎯",
 };
 
 export default function WikiPage() {
@@ -26,7 +17,7 @@ export default function WikiPage() {
   const gameKey = params.game as string;
   const config = GAME_REGISTRY[gameKey];
 
-  const [activeSection, setActiveSection] = useState<Section | "search">("characters");
+  const [activeSection, setActiveSection] = useState<string>("characters");
   const [pages, setPages] = useState<{ title: string; pageId: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,15 +41,15 @@ export default function WikiPage() {
 
   const sections = Object.entries(config?.categories ?? {})
     .filter(([, v]) => !!v)
-    .map(([k]) => k as Section);
+    .map(([k]) => k);
 
   useEffect(() => {
     if (!config || activeSection === "search") return;
     loadSection(activeSection);
   }, [activeSection, config]);
 
-  async function loadSection(section: Section) {
-    const cat = config.categories[section as keyof typeof config.categories];
+  async function loadSection(section: string) {
+    const cat = (config.categories as Record<string, string | undefined>)[section];
     if (!cat) return;
     setLoading(true);
     try {
@@ -89,7 +80,7 @@ export default function WikiPage() {
 
   if (!config) return <p className="text-text-secondary">Game not found in registry.</p>;
 
-  const coverUrl = COVER_MAP[gameKey];
+  const coverUrl = config?.cover;
 
   return (
     <div>
