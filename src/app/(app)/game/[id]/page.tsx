@@ -383,7 +383,7 @@ export default function GameDetailPage() {
       {/* Steam Reviews */}
       {(game.steamAppId || gameId.startsWith("steam-")) && (
         <div className="mb-8">
-          <SteamReviews gameId={game.steamAppId ? `steam-${game.steamAppId}` : gameId} />
+          <SteamReviews gameId={game.steamAppId ?? gameId.replace("steam-", "")} />
         </div>
       )}
 

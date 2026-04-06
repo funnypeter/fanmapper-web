@@ -38,9 +38,9 @@ export default function SteamReviews({ gameId }: { gameId: string }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Extract Steam appid from game ID (format: "steam-{appid}" or "igdb-{id}")
-    const steamAppId = gameId.startsWith("steam-") ? gameId.replace("steam-", "") : null;
-    if (!steamAppId) {
+    // Extract Steam appid (format: "steam-{appid}" or just "{appid}")
+    const steamAppId = gameId.startsWith("steam-") ? gameId.replace("steam-", "") : gameId;
+    if (!steamAppId || steamAppId.startsWith("igdb-")) {
       setLoading(false);
       return;
     }

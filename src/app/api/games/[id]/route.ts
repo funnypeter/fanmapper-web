@@ -22,6 +22,28 @@ async function getToken(): Promise<string> {
   return accessToken!;
 }
 
+async function getSteamAppId(igdbGame: any): Promise<string | null> {
+  // Try IGDB external_games first (category 1 = Steam)
+  const fromIgdb = (igdbGame.external_games ?? []).find((e: any) => e.category === 1)?.uid;
+  if (fromIgdb) return fromIgdb;
+
+  // Fallback: search Steam store by game name
+  try {
+    const res = await fetch(
+      `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(igdbGame.name)}&cc=us&l=en`,
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const match = (data.items ?? []).find((item: any) =>
+        item.name.toLowerCase() === igdbGame.name.toLowerCase()
+      ) ?? data.items?.[0];
+      if (match) return String(match.id);
+    }
+  } catch {}
+
+  return null;
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const igdbId = id.replace("igdb-", "");
@@ -61,7 +83,7 @@ limit 1;`,
       ratingCount: r.total_rating_count ?? 0,
       screenshots: (r.screenshots ?? []).map((s: any) => s.url ? `https:${s.url.replace("t_thumb", "t_screenshot_big")}` : null).filter(Boolean),
       videos: (r.videos ?? []).map((v: any) => ({ id: v.video_id, name: v.name })),
-      steamAppId: (r.external_games ?? []).find((e: any) => e.category === 1)?.uid ?? null,
+      steamAppId: await getSteamAppId(r),
     });
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
