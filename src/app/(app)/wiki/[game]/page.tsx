@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
-import { getCategory, searchWiki, getPageThumbnails } from "@/lib/services/fandom";
+import { getCategory, searchWiki } from "@/lib/services/fandom";
 
 type Section = "characters" | "items" | "weapons" | "locations" | "bosses" | "quests";
 
@@ -28,9 +28,25 @@ export default function WikiPage() {
 
   const [activeSection, setActiveSection] = useState<Section | "search">("characters");
   const [pages, setPages] = useState<{ title: string; pageId: number }[]>([]);
-  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [checked, setChecked] = useState<Set<number>>(() => {
+    if (typeof window === "undefined") return new Set();
+    try {
+      const saved = localStorage.getItem(`fanmapper-checked-${gameKey}`);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch { return new Set(); }
+  });
+
+  const toggleChecked = useCallback((pageId: number) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(pageId)) next.delete(pageId);
+      else next.add(pageId);
+      localStorage.setItem(`fanmapper-checked-${gameKey}`, JSON.stringify([...next]));
+      return next;
+    });
+  }, [gameKey]);
 
   const sections = Object.entries(config?.categories ?? {})
     .filter(([, v]) => !!v)
@@ -48,9 +64,6 @@ export default function WikiPage() {
     try {
       const results = await getCategory(config.wiki, cat, 200);
       setPages(results);
-      // Fetch thumbnails using page IDs
-      const thumbs = await getPageThumbnails(config.wiki, results.map((r) => r.pageId));
-      setThumbnails(thumbs);
     } catch {
       setPages([]);
     } finally {
@@ -67,8 +80,6 @@ export default function WikiPage() {
       const results = await searchWiki(config.wiki, searchQuery, 30);
       const mapped = results.map((r: { title: string; pageId: number }) => ({ title: r.title, pageId: r.pageId }));
       setPages(mapped);
-      const thumbs = await getPageThumbnails(config.wiki, mapped.map((r: { pageId: number }) => r.pageId));
-      setThumbnails(thumbs);
     } catch {
       setPages([]);
     } finally {
@@ -129,6 +140,21 @@ export default function WikiPage() {
         ))}
       </div>
 
+      {/* Progress */}
+      {!loading && pages.length > 0 && (
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-2 rounded-full bg-surface overflow-hidden">
+            <div
+              className="h-full rounded-full bg-success transition-all duration-500"
+              style={{ width: `${pages.length > 0 ? (pages.filter((p) => checked.has(p.pageId)).length / pages.length) * 100 : 0}%` }}
+            />
+          </div>
+          <span className="text-xs text-text-muted whitespace-nowrap">
+            {pages.filter((p) => checked.has(p.pageId)).length} / {pages.length}
+          </span>
+        </div>
+      )}
+
       {/* Page list */}
       {loading ? (
         <div className="flex justify-center py-16">
@@ -136,16 +162,45 @@ export default function WikiPage() {
         </div>
       ) : pages.length > 0 ? (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {pages.map((p) => (
-            <Link
-              key={p.pageId}
-              href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
-              className="card-glass px-4 py-3 flex items-center justify-between hover:border-primary/30 transition group"
-            >
-              <span className="font-medium text-sm group-hover:text-primary transition">{p.title}</span>
-              <span className="text-text-muted text-xs">→</span>
-            </Link>
-          ))}
+          {pages.map((p) => {
+            const isChecked = checked.has(p.pageId);
+            const icon = SECTION_ICONS[activeSection === "search" ? "items" : activeSection] ?? "📄";
+            return (
+              <div key={p.pageId} className={`card-glass flex items-center gap-3 pr-2 transition ${isChecked ? "opacity-60" : ""}`}>
+                {/* Checkbox */}
+                <button
+                  onClick={() => toggleChecked(p.pageId)}
+                  className={`shrink-0 w-10 h-full flex items-center justify-center rounded-l-xl transition ${
+                    isChecked ? "bg-success/20" : "bg-surface-elevated/50 hover:bg-primary/10"
+                  }`}
+                >
+                  {isChecked ? (
+                    <svg className="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <div className="w-4 h-4 rounded border-2 border-text-muted" />
+                  )}
+                </button>
+
+                {/* Icon + link */}
+                <Link
+                  href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
+                  className="flex-1 flex items-center gap-2.5 py-3 group min-w-0"
+                >
+                  <span className="text-base shrink-0">{icon}</span>
+                  <span className={`font-medium text-sm truncate transition ${isChecked ? "line-through text-text-muted" : "group-hover:text-primary"}`}>
+                    {p.title}
+                  </span>
+                </Link>
+
+                {/* Arrow */}
+                <Link href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`} className="text-text-muted text-xs shrink-0 p-1">
+                  →
+                </Link>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-16">
