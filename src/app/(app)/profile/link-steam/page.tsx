@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
@@ -25,6 +25,27 @@ export default function LinkSteamPage() {
   const [progress, setProgress] = useState<ImportProgress | null>(null);
   const [result, setResult] = useState<{ games: number; achievements: number } | null>(null);
   const [error, setError] = useState("");
+  const [loadingExisting, setLoadingExisting] = useState(true);
+
+  // Check if Steam is already linked
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: p } = await supabase.from("profiles").select("steam_id").eq("id", user.id).single();
+        if (p?.steam_id) {
+          setSteamId(p.steam_id);
+          // Auto-lookup the existing profile
+          try {
+            const res = await fetch(`/api/steam/profile?steamid=${p.steam_id}`);
+            const data = await res.json();
+            if (res.ok) setProfile(data);
+          } catch {}
+        }
+      }
+      setLoadingExisting(false);
+    })();
+  }, []);
 
   async function handleLookup() {
     if (!steamId.trim()) return;
