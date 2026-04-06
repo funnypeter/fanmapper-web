@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { findWikiConfig, findWikiConfigByIgdbId, GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import ReviewSection from "@/components/ReviewSection";
+import SteamReviews from "@/components/SteamReviews";
 
 interface GameData {
   id: string;
@@ -19,6 +20,7 @@ interface GameData {
   ratingCount: number;
   screenshots: string[];
   videos: { id: string; name: string }[];
+  steamAppId: string | null;
 }
 
 interface UserGameData {
@@ -64,7 +66,7 @@ export default function GameDetailPage() {
           id: dbGame.id, title: dbGame.title, coverUrl: dbGame.cover_url,
           genres: dbGame.genres ?? [], platforms: dbGame.platforms ?? [],
           releaseDate: dbGame.release_date, summary: dbGame.summary,
-          rating: null, ratingCount: 0, screenshots: [], videos: [],
+          rating: null, ratingCount: 0, screenshots: [], videos: [], steamAppId: null,
         });
         if (gameId.startsWith("igdb-")) fetchIGDB(gameId);
       } else if (gameId.startsWith("igdb-")) {
@@ -89,6 +91,7 @@ export default function GameDetailPage() {
             releaseDate: data.releaseDate, summary: data.summary,
             rating: data.rating, ratingCount: data.ratingCount ?? 0,
             screenshots: data.screenshots ?? [], videos: data.videos ?? [],
+            steamAppId: data.steamAppId ?? null,
           });
         }
       } catch {}
@@ -377,7 +380,14 @@ export default function GameDetailPage() {
         </div>
       )}
 
-      {/* Reviews */}
+      {/* Steam Reviews */}
+      {(game.steamAppId || gameId.startsWith("steam-")) && (
+        <div className="mb-8">
+          <SteamReviews gameId={game.steamAppId ? `steam-${game.steamAppId}` : gameId} />
+        </div>
+      )}
+
+      {/* User Reviews */}
       <div className="mb-8">
         <ReviewSection gameId={gameId} isLoggedIn={!!user} isInLibrary={inLibrary} />
       </div>
