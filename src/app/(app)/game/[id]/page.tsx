@@ -70,14 +70,21 @@ export default function GameDetailPage() {
           releaseDate: dbGame.release_date,
           summary: dbGame.summary,
         });
-      } else {
-        // Fetch from IGDB API
-        const igdbId = gameId.replace("igdb-", "");
+      } else if (gameId.startsWith("igdb-")) {
+        // Fetch from IGDB API by ID
         try {
-          const res = await fetch(`/api/games/search?q=${encodeURIComponent(igdbId)}`);
-          const results = await res.json();
-          if (results.length > 0) {
-            setGame(results[0]);
+          const res = await fetch(`/api/games/${gameId}`);
+          if (res.ok) {
+            const data = await res.json();
+            setGame({
+              id: data.id,
+              title: data.title,
+              coverUrl: data.coverUrl,
+              genres: data.genres ?? [],
+              platforms: data.platforms ?? [],
+              releaseDate: data.releaseDate,
+              summary: data.summary,
+            });
           }
         } catch {}
       }
