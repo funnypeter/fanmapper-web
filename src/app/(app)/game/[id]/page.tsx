@@ -195,8 +195,8 @@ export default function GameDetailPage() {
         </div>
       </div>
 
-      {/* Add to Library — prominent standalone card */}
-      {!inLibrary && (
+      {/* Add to Library */}
+      {!inLibrary ? (
         <div className="card-glass p-6 mb-6 text-center">
           <button
             onClick={handleAddToLibrary}
@@ -210,6 +210,15 @@ export default function GameDetailPage() {
               <Link href="/auth/login" className="text-primary hover:underline">Sign in</Link> to add games to your library
             </p>
           )}
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 mb-4 px-1">
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-success bg-success/10 px-3 py-1.5 rounded-full">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            In Library
+          </span>
         </div>
       )}
 
@@ -268,17 +277,31 @@ export default function GameDetailPage() {
         </div>
       )}
 
-      {/* Track Progress — separate card for supported games */}
-      {wikiKey && (
+      {/* Track Progress — always visible */}
+      {wikiKey ? (
         <Link href={`/wiki/${wikiKey}`}
           className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group">
           <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
           <div className="flex-1">
             <p className="font-semibold group-hover:text-primary transition">Track Progress</p>
-            <p className="text-sm text-text-secondary">Wiki checklists for characters, items, bosses &amp; more</p>
+            <p className="text-sm text-text-secondary">Characters, items, bosses, locations &amp; more</p>
           </div>
           <span className="text-primary text-lg">→</span>
         </Link>
+      ) : (
+        <a
+          href={`https://www.fandom.com/?s=${encodeURIComponent(game.title)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group"
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
+          <div className="flex-1">
+            <p className="font-semibold group-hover:text-primary transition">Game Wiki</p>
+            <p className="text-sm text-text-secondary">Browse the Fandom wiki for {game.title}</p>
+          </div>
+          <span className="text-primary text-lg">↗</span>
+        </a>
       )}
 
       {/* Videos — horizontal scroll */}
