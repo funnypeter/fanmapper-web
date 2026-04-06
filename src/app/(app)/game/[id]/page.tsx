@@ -98,17 +98,25 @@ export default function GameDetailPage() {
   async function handleAddToLibrary() {
     if (!user) { router.push("/auth/login"); return; }
     setSaving(true);
-    if (game) {
-      await supabase.from("games").upsert({
-        id: game.id, title: game.title, cover_url: game.coverUrl,
-        genres: game.genres, platforms: game.platforms,
-        release_date: game.releaseDate, summary: game.summary,
-      });
+    try {
+      // Ensure game exists in DB first
+      if (game) {
+        const { error: gameErr } = await supabase.from("games").upsert({
+          id: game.id, title: game.title, cover_url: game.coverUrl,
+          genres: game.genres, platforms: game.platforms,
+          release_date: game.releaseDate, summary: game.summary,
+        }, { onConflict: "id" });
+        if (gameErr) console.error("Game upsert error:", gameErr);
+      }
+      // Add to user library
+      const { error: ugErr } = await supabase.from("user_games").upsert({
+        user_id: user.id, game_id: gameId, status: "backlog", updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id,game_id" });
+      if (ugErr) console.error("User game upsert error:", ugErr);
+      else setUserGame({ status: "backlog", playtime_minutes: 0, rating: null, review: null });
+    } catch (err) {
+      console.error("Add to library error:", err);
     }
-    await supabase.from("user_games").upsert({
-      user_id: user.id, game_id: gameId, status: "backlog", updated_at: new Date().toISOString(),
-    });
-    setUserGame({ status: "backlog", playtime_minutes: 0, rating: null, review: null });
     setSaving(false);
   }
 
@@ -225,10 +233,7 @@ export default function GameDetailPage() {
       {/* Library management (only visible after adding) */}
       {inLibrary && (
         <div className="card-glass p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-lg">Your Progress</h3>
-            <button onClick={removeFromLibrary} className="text-xs text-error hover:underline">Remove</button>
-          </div>
+          <h3 className="font-semibold text-lg mb-4">Your Progress</h3>
 
           {/* Status */}
           <div className="flex flex-wrap gap-2 mb-5">
@@ -274,11 +279,18 @@ export default function GameDetailPage() {
             </div>
           </div>
 
+          {/* Remove from Library */}
+          <button
+            onClick={removeFromLibrary}
+            className="w-full mt-2 py-3 rounded-xl border border-error/30 text-error text-sm font-medium hover:bg-error/10 transition"
+          >
+            Remove from Library
+          </button>
         </div>
       )}
 
-      {/* Track Progress — always visible */}
-      {wikiKey ? (
+      {/* Track Progress — only for supported games */}
+      {wikiKey && (
         <Link href={`/wiki/${wikiKey}`}
           className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group">
           <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
@@ -288,20 +300,6 @@ export default function GameDetailPage() {
           </div>
           <span className="text-primary text-lg">→</span>
         </Link>
-      ) : (
-        <a
-          href={`https://www.fandom.com/?s=${encodeURIComponent(game.title)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group"
-        >
-          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
-          <div className="flex-1">
-            <p className="font-semibold group-hover:text-primary transition">Game Wiki</p>
-            <p className="text-sm text-text-secondary">Browse the Fandom wiki for {game.title}</p>
-          </div>
-          <span className="text-primary text-lg">↗</span>
-        </a>
       )}
 
       {/* Videos — horizontal scroll */}
