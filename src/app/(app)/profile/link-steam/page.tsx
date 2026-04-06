@@ -68,11 +68,11 @@ export default function LinkSteamPage() {
 
         const gameId = `steam-${g.appid}`;
 
-        // Upsert game
+        // Upsert game — use header image as fallback for cover
         await supabase.from("games").upsert({
           id: gameId,
           title: g.name,
-          cover_url: g.coverUrl,
+          cover_url: g.headerUrl ?? g.coverUrl,
           genres: [],
           platforms: ["PC"],
         }, { onConflict: "id" });

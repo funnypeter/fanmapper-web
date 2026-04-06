@@ -111,7 +111,22 @@ export default function LibraryGrid({ games }: { games: LibraryGame[] }) {
                 className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
               >
                 {ug.coverUrl ? (
-                  <img src={ug.coverUrl} alt={ug.title} className="w-full aspect-[3/4] object-cover" />
+                  <img
+                    src={ug.coverUrl}
+                    alt={ug.title}
+                    className="w-full aspect-[3/4] object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      // Try Steam header fallback
+                      if (ug.gameId.startsWith("steam-") && img.src.includes("library_600x900")) {
+                        img.src = `https://cdn.akamai.steamstatic.com/steam/apps/${ug.gameId.replace("steam-", "")}/header.jpg`;
+                      } else {
+                        img.style.display = "none";
+                        img.parentElement!.classList.add("bg-surface-elevated");
+                        img.insertAdjacentHTML("afterend", '<div class="absolute inset-0 flex items-center justify-center text-3xl">🎮</div>');
+                      }
+                    }}
+                  />
                 ) : (
                   <div className="w-full aspect-[3/4] bg-surface-elevated flex items-center justify-center text-text-muted text-3xl">🎮</div>
                 )}

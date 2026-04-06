@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
     name: g.name,
     playtimeForever: g.playtime_forever ?? 0,
     playtime2Weeks: g.playtime_2weeks ?? 0,
-    coverUrl: `https://cdn.akamai.steamstatic.com/steam/apps/${g.appid}/library_600x900_2x.jpg`,
+    coverUrl: `https://steamcdn-a.akamaihd.net/steam/apps/${g.appid}/library_600x900_2x.jpg`,
+    headerUrl: `https://cdn.akamai.steamstatic.com/steam/apps/${g.appid}/header.jpg`,
   }));
 
   return NextResponse.json({ gameCount: data.response?.game_count ?? 0, games });
