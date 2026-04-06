@@ -115,11 +115,11 @@ export default async function ProfilePage() {
               <span className="text-xl">🎮</span>
               <span>Steam</span>
             </div>
-            {profile?.steam_id ? (
-              <span className="text-xs text-success font-medium bg-success/10 px-2.5 py-1 rounded-full">Linked</span>
-            ) : (
-              <Link href="/profile/link-steam" className="text-xs text-primary font-medium hover:underline">Connect</Link>
-            )}
+            <Link href="/profile/link-steam" className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+              profile?.steam_id ? "text-success bg-success/10 hover:bg-success/20" : "text-primary hover:underline"
+            } transition`}>
+              {profile?.steam_id ? "Linked · Re-sync" : "Connect"}
+            </Link>
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-surface-elevated/50">
             <div className="flex items-center gap-3">
