@@ -56,27 +56,16 @@ export default function GameDetailPage() {
       const { data: { user: u } } = await supabase.auth.getUser();
       setUser(u);
 
-      // Try Supabase first
       const { data: dbGame } = await supabase.from("games").select("*").eq("id", gameId).single();
 
       if (dbGame) {
         setGame({
-          id: dbGame.id,
-          title: dbGame.title,
-          coverUrl: dbGame.cover_url,
-          genres: dbGame.genres ?? [],
-          platforms: dbGame.platforms ?? [],
-          releaseDate: dbGame.release_date,
-          summary: dbGame.summary,
-          rating: null,
-          ratingCount: 0,
-          screenshots: [],
-          videos: [],
+          id: dbGame.id, title: dbGame.title, coverUrl: dbGame.cover_url,
+          genres: dbGame.genres ?? [], platforms: dbGame.platforms ?? [],
+          releaseDate: dbGame.release_date, summary: dbGame.summary,
+          rating: null, ratingCount: 0, screenshots: [], videos: [],
         });
-        // Also fetch full details from IGDB for videos/screenshots
-        if (gameId.startsWith("igdb-")) {
-          fetchIGDB(gameId);
-        }
+        if (gameId.startsWith("igdb-")) fetchIGDB(gameId);
       } else if (gameId.startsWith("igdb-")) {
         await fetchIGDB(gameId);
       }
@@ -85,7 +74,6 @@ export default function GameDetailPage() {
         const { data: ug } = await supabase.from("user_games").select("*").eq("user_id", u.id).eq("game_id", gameId).single();
         if (ug) { setUserGame(ug); setUserRating(ug.rating ?? 0); }
       }
-
       setLoading(false);
     }
 
@@ -95,26 +83,19 @@ export default function GameDetailPage() {
         if (res.ok) {
           const data = await res.json();
           setGame({
-            id: data.id,
-            title: data.title,
-            coverUrl: data.coverUrl,
-            genres: data.genres ?? [],
-            platforms: data.platforms ?? [],
-            releaseDate: data.releaseDate,
-            summary: data.summary,
-            rating: data.rating,
-            ratingCount: data.ratingCount ?? 0,
-            screenshots: data.screenshots ?? [],
-            videos: data.videos ?? [],
+            id: data.id, title: data.title, coverUrl: data.coverUrl,
+            genres: data.genres ?? [], platforms: data.platforms ?? [],
+            releaseDate: data.releaseDate, summary: data.summary,
+            rating: data.rating, ratingCount: data.ratingCount ?? 0,
+            screenshots: data.screenshots ?? [], videos: data.videos ?? [],
           });
         }
       } catch {}
     }
-
     load();
   }, [gameId]);
 
-  async function addToLibrary(status: string) {
+  async function handleAddToLibrary() {
     if (!user) { router.push("/auth/login"); return; }
     setSaving(true);
     if (game) {
@@ -125,10 +106,16 @@ export default function GameDetailPage() {
       });
     }
     await supabase.from("user_games").upsert({
-      user_id: user.id, game_id: gameId, status, updated_at: new Date().toISOString(),
+      user_id: user.id, game_id: gameId, status: "backlog", updated_at: new Date().toISOString(),
     });
-    setUserGame((prev) => ({ status, playtime_minutes: prev?.playtime_minutes ?? 0, rating: prev?.rating ?? null, review: prev?.review ?? null }));
+    setUserGame({ status: "backlog", playtime_minutes: 0, rating: null, review: null });
     setSaving(false);
+  }
+
+  async function changeStatus(status: string) {
+    if (!user) return;
+    await supabase.from("user_games").update({ status, updated_at: new Date().toISOString() }).eq("user_id", user.id).eq("game_id", gameId);
+    setUserGame((prev) => prev ? { ...prev, status } : null);
   }
 
   async function updateRating(r: number) {
@@ -168,7 +155,7 @@ export default function GameDetailPage() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Hero */}
-      <div className="relative rounded-2xl overflow-hidden mb-8">
+      <div className="relative rounded-2xl overflow-hidden mb-6">
         {game.coverUrl && (
           <div className="absolute inset-0">
             <img src={game.coverUrl} alt="" className="w-full h-full object-cover blur-2xl scale-125 opacity-25" />
@@ -183,8 +170,6 @@ export default function GameDetailPage() {
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl font-bold">{game.title}</h1>
             {game.releaseDate && <p className="text-text-secondary mt-1">{game.releaseDate.substring(0, 4)}</p>}
-
-            {/* Rating */}
             {game.rating && (
               <div className="flex items-center gap-3 mt-3">
                 <div className="flex items-center gap-1.5 bg-primary/15 px-3 py-1.5 rounded-lg">
@@ -192,58 +177,47 @@ export default function GameDetailPage() {
                   <span className="font-bold text-primary">{game.rating}</span>
                   <span className="text-xs text-text-muted">/ 100</span>
                 </div>
-                {game.ratingCount > 0 && (
-                  <span className="text-xs text-text-muted">{game.ratingCount} ratings</span>
-                )}
+                {game.ratingCount > 0 && <span className="text-xs text-text-muted">{game.ratingCount} ratings</span>}
               </div>
             )}
-
             {game.genres.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
-                {game.genres.map((g) => (
-                  <span key={g} className="text-xs bg-primary/10 text-primary-light px-2.5 py-1 rounded-full">{g}</span>
-                ))}
+                {game.genres.map((g) => <span key={g} className="text-xs bg-primary/10 text-primary-light px-2.5 py-1 rounded-full">{g}</span>)}
               </div>
             )}
             {game.platforms.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {game.platforms.map((p) => (
-                  <span key={p} className="text-xs bg-surface-elevated text-text-muted px-2.5 py-1 rounded-full">{p}</span>
-                ))}
+                {game.platforms.map((p) => <span key={p} className="text-xs bg-surface-elevated text-text-muted px-2.5 py-1 rounded-full">{p}</span>)}
               </div>
+            )}
+
+            {/* Add to Library button */}
+            {!inLibrary && (
+              <button
+                onClick={handleAddToLibrary}
+                disabled={saving}
+                className="btn-primary mt-5 flex items-center gap-2 text-sm"
+              >
+                <span className="text-lg">+</span>
+                {saving ? "Adding..." : "Add to Library"}
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Add to Library / Status */}
-      {!inLibrary ? (
-        <div className="card-glass p-6 mb-6">
-          <h3 className="font-semibold text-lg mb-4">Add to Library</h3>
-          <div className="flex flex-wrap gap-2">
-            {STATUSES.map((s) => (
-              <button key={s.value} onClick={() => addToLibrary(s.value)} disabled={saving}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition text-sm font-medium">
-                <span>{s.icon}</span><span>{s.label}</span>
-              </button>
-            ))}
-          </div>
-          {!user && (
-            <p className="text-xs text-text-muted mt-3">
-              <Link href="/auth/login" className="text-primary hover:underline">Sign in</Link> to add games to your library
-            </p>
-          )}
-        </div>
-      ) : (
+      {/* Library management (only visible after adding) */}
+      {inLibrary && (
         <div className="card-glass p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-lg">In Your Library</h3>
+            <h3 className="font-semibold text-lg">Your Progress</h3>
             <button onClick={removeFromLibrary} className="text-xs text-error hover:underline">Remove</button>
           </div>
 
+          {/* Status */}
           <div className="flex flex-wrap gap-2 mb-5">
             {STATUSES.map((s) => (
-              <button key={s.value} onClick={() => addToLibrary(s.value)}
+              <button key={s.value} onClick={() => changeStatus(s.value)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
                   userGame?.status === s.value ? `${s.color} border-transparent text-white font-medium` : "border-border text-text-secondary hover:border-text-muted"
                 }`}>
@@ -252,18 +226,20 @@ export default function GameDetailPage() {
             ))}
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4 mb-5">
+            {/* Rating */}
             <div>
               <p className="text-sm text-text-secondary mb-2">Your Rating</p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button key={n} onClick={() => updateRating(n)} onMouseEnter={() => setHoverRating(n)} onMouseLeave={() => setHoverRating(0)}
-                    className="text-2xl transition-transform hover:scale-125">
-                    {n <= (hoverRating || userRating) ? "★" : "☆"}
+                    className="text-2xl transition-transform hover:scale-125" style={{ color: n <= (hoverRating || userRating) ? "#FDCB6E" : "#484F58" }}>
+                    ★
                   </button>
                 ))}
               </div>
             </div>
+            {/* Playtime */}
             <div>
               <p className="text-sm text-text-secondary mb-2">Playtime</p>
               {editingPlaytime ? (
@@ -281,45 +257,30 @@ export default function GameDetailPage() {
               )}
             </div>
           </div>
+
+          {/* Track Progress via Wiki */}
+          {wikiKey && (
+            <Link href={`/wiki/${wikiKey}`}
+              className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition">
+              <span className="text-2xl">📖</span>
+              <div>
+                <p className="font-semibold text-primary">Track Progress</p>
+                <p className="text-xs text-text-secondary">Wiki checklists, characters, items, bosses &amp; more</p>
+              </div>
+              <span className="ml-auto text-primary">→</span>
+            </Link>
+          )}
         </div>
       )}
 
-      {/* Quick actions: Track Progress (Wiki), Map, Achievements */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        {wikiKey && (
-          <Link href={`/wiki/${wikiKey}`} className="card-glass p-4 text-center hover:border-primary/30 transition group">
-            <span className="text-2xl">📖</span>
-            <p className="text-sm font-medium mt-2 group-hover:text-primary transition">Track Progress</p>
-            <p className="text-xs text-text-muted">Wiki & Checklists</p>
-          </Link>
-        )}
-        {wikiKey && wikiConfig?.maps && wikiConfig.maps.length > 0 && (
-          <div className="card-glass p-4 text-center opacity-50">
-            <span className="text-2xl">🗺️</span>
-            <p className="text-sm font-medium mt-2">Interactive Map</p>
-            <p className="text-xs text-text-muted">Coming soon</p>
-          </div>
-        )}
-        <div className="card-glass p-4 text-center opacity-50">
-          <span className="text-2xl">🏆</span>
-          <p className="text-sm font-medium mt-2">Achievements</p>
-          <p className="text-xs text-text-muted">Coming soon</p>
-        </div>
-        <div className="card-glass p-4 text-center opacity-50">
-          <span className="text-2xl">⏱️</span>
-          <p className="text-sm font-medium mt-2">HowLongToBeat</p>
-          <p className="text-xs text-text-muted">Coming soon</p>
-        </div>
-      </div>
-
-      {/* YouTube Videos */}
+      {/* Videos — horizontal scroll */}
       {game.videos.length > 0 && (
         <div className="mb-8">
           <h3 className="text-xl font-bold mb-4">Videos</h3>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {game.videos.slice(0, 4).map((video) => (
-              <div key={video.id} className="rounded-xl overflow-hidden border border-border/50">
-                <div className="relative aspect-video">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide">
+            {game.videos.slice(0, 8).map((video) => (
+              <div key={video.id} className="shrink-0 w-80 snap-start rounded-xl overflow-hidden border border-border/50">
+                <div className="aspect-video">
                   <iframe
                     src={`https://www.youtube.com/embed/${video.id}`}
                     title={video.name}
@@ -337,13 +298,14 @@ export default function GameDetailPage() {
         </div>
       )}
 
-      {/* Screenshots */}
+      {/* Screenshots — horizontal scroll */}
       {game.screenshots.length > 0 && (
         <div className="mb-8">
           <h3 className="text-xl font-bold mb-4">Screenshots</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {game.screenshots.slice(0, 6).map((url, i) => (
-              <img key={i} src={url} alt={`Screenshot ${i + 1}`} className="w-full rounded-xl border border-border/50" />
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide">
+            {game.screenshots.slice(0, 10).map((url, i) => (
+              <img key={i} src={url} alt={`Screenshot ${i + 1}`}
+                className="shrink-0 h-48 rounded-xl border border-border/50 snap-start object-cover" />
             ))}
           </div>
         </div>
@@ -357,7 +319,7 @@ export default function GameDetailPage() {
         </div>
       )}
 
-      {/* User Reviews placeholder */}
+      {/* Reviews */}
       <div className="card-glass p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold">User Reviews</h3>
