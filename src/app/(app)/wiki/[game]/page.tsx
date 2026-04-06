@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
-import { getCategory, searchWiki } from "@/lib/services/fandom";
+import { getCategory, searchWiki, getPageThumbnails } from "@/lib/services/fandom";
 
 type Section = "characters" | "items" | "weapons" | "locations" | "bosses" | "quests";
 
@@ -28,6 +28,7 @@ export default function WikiPage() {
 
   const [activeSection, setActiveSection] = useState<Section | "search">("characters");
   const [pages, setPages] = useState<{ title: string; pageId: number }[]>([]);
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -37,20 +38,42 @@ export default function WikiPage() {
 
   useEffect(() => {
     if (!config || activeSection === "search") return;
-    setLoading(true);
-    const cat = config.categories[activeSection as keyof typeof config.categories];
-    if (!cat) return;
-    getCategory(config.wiki, cat, 200).then(setPages).finally(() => setLoading(false));
+    loadSection(activeSection);
   }, [activeSection, config]);
+
+  async function loadSection(section: Section) {
+    const cat = config.categories[section as keyof typeof config.categories];
+    if (!cat) return;
+    setLoading(true);
+    try {
+      const results = await getCategory(config.wiki, cat, 200);
+      setPages(results);
+      // Fetch thumbnails for the results
+      const thumbs = await getPageThumbnails(config.wiki, results.map((r) => r.title));
+      setThumbnails(thumbs);
+    } catch {
+      setPages([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!searchQuery.trim() || !config) return;
     setActiveSection("search");
     setLoading(true);
-    const results = await searchWiki(config.wiki, searchQuery, 30);
-    setPages(results.map((r: { title: string; pageId: number }) => ({ title: r.title, pageId: r.pageId })));
-    setLoading(false);
+    try {
+      const results = await searchWiki(config.wiki, searchQuery, 30);
+      const mapped = results.map((r: { title: string; pageId: number }) => ({ title: r.title, pageId: r.pageId }));
+      setPages(mapped);
+      const thumbs = await getPageThumbnails(config.wiki, mapped.map((r: { title: string }) => r.title));
+      setThumbnails(thumbs);
+    } catch {
+      setPages([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (!config) return <p className="text-text-secondary">Game not found in registry.</p>;
@@ -106,23 +129,35 @@ export default function WikiPage() {
         ))}
       </div>
 
-      {/* Page list */}
+      {/* Page grid with thumbnails */}
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : pages.length > 0 ? (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {pages.map((p) => (
-            <Link
-              key={p.pageId}
-              href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
-              className="card-glass p-4 hover:border-primary/30 transition group"
-            >
-              <p className="font-medium group-hover:text-primary transition">{p.title}</p>
-              <p className="text-xs text-text-muted mt-1">View article →</p>
-            </Link>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {pages.map((p) => {
+            const thumb = thumbnails[p.title];
+            return (
+              <Link
+                key={p.pageId}
+                href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
+                className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
+              >
+                {thumb ? (
+                  <img src={thumb} alt={p.title} className="w-full aspect-square object-cover" />
+                ) : (
+                  <div className="w-full aspect-square bg-surface-elevated flex items-center justify-center text-3xl text-text-muted">
+                    {SECTION_ICONS[activeSection === "search" ? "items" : activeSection] ?? "📄"}
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <p className="font-medium text-sm text-white leading-tight">{p.title}</p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-16">

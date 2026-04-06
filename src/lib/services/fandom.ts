@@ -60,6 +60,28 @@ export async function searchWiki(wiki: string, query: string, limit = 20) {
   }));
 }
 
+// Fetch thumbnail images for a batch of page titles (up to 50 at a time)
+export async function getPageThumbnails(wiki: string, titles: string[]): Promise<Record<string, string>> {
+  const thumbnails: Record<string, string> = {};
+  // MediaWiki API supports up to 50 titles per request
+  for (let i = 0; i < titles.length; i += 50) {
+    const batch = titles.slice(i, i + 50);
+    const data = await fandomApi(wiki, {
+      action: "query",
+      titles: batch.join("|"),
+      prop: "pageimages",
+      pithumbsize: "300",
+      pilimit: "50",
+    });
+    for (const page of data.query?.pages ?? []) {
+      if (page.thumbnail?.source) {
+        thumbnails[page.title] = page.thumbnail.source;
+      }
+    }
+  }
+  return thumbnails;
+}
+
 export async function getCategory(wiki: string, category: string, limit = 500) {
   const results: { title: string; pageId: number }[] = [];
   let cmcontinue: string | undefined;
