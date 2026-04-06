@@ -39,7 +39,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "Content-Type": "text/plain",
       },
       body: `where id = ${numericId};
-fields id,name,cover.url,genres.name,platforms.name,first_release_date,summary,storyline,screenshots.url,artworks.url,rating,aggregated_rating;
+fields id,name,cover.url,genres.name,platforms.name,first_release_date,summary,storyline,screenshots.url,artworks.url,videos.video_id,videos.name,rating,aggregated_rating,total_rating,total_rating_count;
 limit 1;`,
     });
 
@@ -57,8 +57,10 @@ limit 1;`,
       platforms: (r.platforms ?? []).map((p: any) => p.name),
       releaseDate: r.first_release_date ? new Date(r.first_release_date * 1000).toISOString().split("T")[0] : null,
       summary: r.summary ?? r.storyline ?? null,
-      rating: r.rating ? Math.round(r.rating) / 20 : null, // Convert 0-100 to 0-5
-      aggregatedRating: r.aggregated_rating ? Math.round(r.aggregated_rating) : null,
+      rating: r.total_rating ? Math.round(r.total_rating) : null,
+      ratingCount: r.total_rating_count ?? 0,
+      screenshots: (r.screenshots ?? []).map((s: any) => s.url ? `https:${s.url.replace("t_thumb", "t_screenshot_big")}` : null).filter(Boolean),
+      videos: (r.videos ?? []).map((v: any) => ({ id: v.video_id, name: v.name })),
     });
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });

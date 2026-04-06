@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import { searchGames } from "@/lib/services/igdb";
 import type { IGDBGame } from "@/lib/services/igdb";
 
-const FEATURED_GAMES = [
-  { title: "Elden Ring", slug: "elden-ring", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", genre: "Action RPG", wiki: "eldenring" },
-  { title: "Skyrim", slug: "skyrim", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tnw.jpg", genre: "Open World RPG", wiki: "elderscrolls" },
-  { title: "Fallout 4", slug: "fallout-4", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg", genre: "Action RPG", wiki: "fallout" },
-  { title: "Genshin Impact", slug: "genshin-impact", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3s3x.jpg", genre: "Action RPG", wiki: "genshin-impact" },
-  { title: "Zelda: TotK", slug: "zelda-totk", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", genre: "Adventure", wiki: "zelda" },
+const TRENDING_GAMES = [
+  { id: "igdb-119171", title: "Elden Ring", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", genre: "Action RPG" },
+  { id: "igdb-119133", title: "Zelda: TotK", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", genre: "Adventure" },
+  { id: "igdb-1942", title: "The Witcher 3", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg", genre: "RPG" },
+  { id: "igdb-1020", title: "GTA V", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co2lbd.jpg", genre: "Action" },
+  { id: "igdb-427520", title: "Genshin Impact", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3s3x.jpg", genre: "Action RPG" },
+  { id: "igdb-472", title: "The Elder Scrolls V: Skyrim", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tnw.jpg", genre: "RPG" },
+  { id: "igdb-9630", title: "Fallout 4", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg", genre: "Action RPG" },
+  { id: "igdb-732", title: "God of War", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tmu.jpg", genre: "Action" },
+  { id: "igdb-115278", title: "Hades", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/co2hct.jpg", genre: "Roguelike" },
+  { id: "igdb-113112", title: "Stardew Valley", cover: "https://images.igdb.com/igdb/image/upload/t_cover_big/xrpmydnu9rpxvxfjkiu7.jpg", genre: "Simulation" },
 ];
 
-const GENRES = ["RPG", "Action", "Adventure", "Shooter", "Strategy", "Indie", "Horror", "Platformer"];
+const GENRES = ["RPG", "Action", "Adventure", "Shooter", "Strategy", "Indie", "Horror", "Platformer", "Sports", "Racing"];
 
 export default function ExplorePage() {
   const [query, setQuery] = useState("");
@@ -40,11 +44,6 @@ export default function ExplorePage() {
     }, 400);
   }
 
-  function handleGenre(genre: string) {
-    setQuery(genre);
-    handleInput(genre);
-  }
-
   return (
     <div>
       {/* Hero search */}
@@ -52,7 +51,7 @@ export default function ExplorePage() {
         <h2 className="text-4xl font-bold mb-2">
           Discover <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Games</span>
         </h2>
-        <p className="text-text-secondary mb-6">Search any game or browse Fandom wikis</p>
+        <p className="text-text-secondary mb-6">Search any game to track, review, and explore</p>
         <div className="max-w-2xl mx-auto relative">
           <input
             type="text"
@@ -67,12 +66,11 @@ export default function ExplorePage() {
             </div>
           )}
         </div>
-        {/* Genre chips */}
         <div className="flex flex-wrap justify-center gap-2 mt-4">
           {GENRES.map((g) => (
             <button
               key={g}
-              onClick={() => handleGenre(g)}
+              onClick={() => { setQuery(g); handleInput(g); }}
               className="px-4 py-1.5 rounded-full text-sm border border-border text-text-secondary hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition"
             >
               {g}
@@ -87,26 +85,7 @@ export default function ExplorePage() {
           <h3 className="text-lg font-semibold mb-4">Search Results</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {results.map((game) => (
-              <Link
-                key={game.id}
-                href={`/game/${game.id}`}
-                className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
-              >
-                {game.coverUrl ? (
-                  <img src={game.coverUrl} alt={game.title} className="w-full aspect-[3/4] object-cover" />
-                ) : (
-                  <div className="w-full aspect-[3/4] bg-surface-elevated flex items-center justify-center text-text-muted text-3xl">
-                    🎮
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="font-semibold text-sm leading-tight text-white">{game.title}</p>
-                  <p className="text-xs text-white/60 mt-0.5">
-                    {game.releaseDate?.substring(0, 4)}{game.genres.length > 0 ? ` · ${game.genres[0]}` : ""}
-                  </p>
-                </div>
-              </Link>
+              <GameCard key={game.id} id={game.id} title={game.title} cover={game.coverUrl} genre={game.genres[0]} year={game.releaseDate?.substring(0, 4)} />
             ))}
           </div>
         </div>
@@ -116,59 +95,44 @@ export default function ExplorePage() {
         <p className="text-text-secondary text-center mb-12">No games found for &ldquo;{query}&rdquo;</p>
       )}
 
-      {/* Featured wikis with cover art */}
-      <div>
-        <h3 className="text-xl font-bold mb-2">Featured Wikis</h3>
-        <p className="text-text-secondary text-sm mb-6">Interactive maps, characters, items, and walkthroughs</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-5">
-          {FEATURED_GAMES.map((game) => (
-            <Link
-              key={game.slug}
-              href={`/wiki/${game.slug}`}
-              className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
-            >
-              <img src={game.cover} alt={game.title} className="w-full aspect-[3/4] object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-3">
-                <p className="font-semibold text-sm text-white">{game.title}</p>
-                <p className="text-xs text-white/50 mt-0.5">{game.genre}</p>
-                <div className="flex gap-1 mt-2">
-                  {Object.keys(GAME_REGISTRY[game.slug]?.categories ?? {}).slice(0, 3).map((cat) => (
-                    <span key={cat} className="text-[10px] bg-white/10 text-white/70 px-1.5 py-0.5 rounded capitalize">{cat}</span>
-                  ))}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* All wikis list */}
-      <div className="mt-14">
-        <h3 className="text-xl font-bold mb-4">All Supported Wikis</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          {Object.entries(GAME_REGISTRY).map(([key, config]) => (
-            <Link
-              key={key}
-              href={`/wiki/${key}`}
-              className="card-glass p-5 flex items-center gap-4 hover:border-primary/30 transition group"
-            >
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-2xl shrink-0">
-                📖
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold group-hover:text-primary transition">{config.gameTitle}</p>
-                <p className="text-sm text-text-muted">{config.wiki}.fandom.com</p>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {Object.keys(config.categories).slice(0, 3).map((cat) => (
-                  <span key={cat} className="text-xs bg-primary/10 text-primary-light px-2 py-0.5 rounded-full capitalize">{cat}</span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+      {/* Trending / Popular games */}
+      {!searched && (
+        <>
+          <div className="mb-12">
+            <h3 className="text-xl font-bold mb-2">Trending Games</h3>
+            <p className="text-text-secondary text-sm mb-5">Popular titles to track and explore</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {TRENDING_GAMES.map((game) => (
+                <GameCard key={game.id} id={game.id} title={game.title} cover={game.cover} genre={game.genre} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
+  );
+}
+
+function GameCard({ id, title, cover, genre, year }: { id: string; title: string; cover: string | null; genre?: string; year?: string }) {
+  return (
+    <Link
+      href={`/game/${id}`}
+      className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
+    >
+      {cover ? (
+        <img src={cover} alt={title} className="w-full aspect-[3/4] object-cover" />
+      ) : (
+        <div className="w-full aspect-[3/4] bg-surface-elevated flex items-center justify-center text-text-muted text-3xl">
+          🎮
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="font-semibold text-sm leading-tight text-white">{title}</p>
+        <p className="text-xs text-white/60 mt-0.5">
+          {year}{genre ? ` · ${genre}` : ""}
+        </p>
+      </div>
+    </Link>
   );
 }

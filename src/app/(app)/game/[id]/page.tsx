@@ -14,6 +14,10 @@ interface GameData {
   platforms: string[];
   releaseDate: string | null;
   summary: string | null;
+  rating: number | null;
+  ratingCount: number;
+  screenshots: string[];
+  videos: { id: string; name: string }[];
 }
 
 interface UserGameData {
@@ -42,23 +46,18 @@ export default function GameDetailPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [rating, setRating] = useState(0);
+  const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [playtimeInput, setPlaytimeInput] = useState("");
   const [editingPlaytime, setEditingPlaytime] = useState(false);
 
   useEffect(() => {
     async function load() {
-      // Get user (may be null if not logged in)
       const { data: { user: u } } = await supabase.auth.getUser();
       setUser(u);
 
-      // Try to load game from Supabase first
-      const { data: dbGame } = await supabase
-        .from("games")
-        .select("*")
-        .eq("id", gameId)
-        .single();
+      // Try Supabase first
+      const { data: dbGame } = await supabase.from("games").select("*").eq("id", gameId).single();
 
       if (dbGame) {
         setGame({
@@ -69,82 +68,74 @@ export default function GameDetailPage() {
           platforms: dbGame.platforms ?? [],
           releaseDate: dbGame.release_date,
           summary: dbGame.summary,
+          rating: null,
+          ratingCount: 0,
+          screenshots: [],
+          videos: [],
         });
+        // Also fetch full details from IGDB for videos/screenshots
+        if (gameId.startsWith("igdb-")) {
+          fetchIGDB(gameId);
+        }
       } else if (gameId.startsWith("igdb-")) {
-        // Fetch from IGDB API by ID
-        try {
-          const res = await fetch(`/api/games/${gameId}`);
-          if (res.ok) {
-            const data = await res.json();
-            setGame({
-              id: data.id,
-              title: data.title,
-              coverUrl: data.coverUrl,
-              genres: data.genres ?? [],
-              platforms: data.platforms ?? [],
-              releaseDate: data.releaseDate,
-              summary: data.summary,
-            });
-          }
-        } catch {}
+        await fetchIGDB(gameId);
       }
 
-      // Get user's relationship with this game
       if (u) {
-        const { data: ug } = await supabase
-          .from("user_games")
-          .select("*")
-          .eq("user_id", u.id)
-          .eq("game_id", gameId)
-          .single();
-
-        if (ug) {
-          setUserGame(ug);
-          setRating(ug.rating ?? 0);
-        }
+        const { data: ug } = await supabase.from("user_games").select("*").eq("user_id", u.id).eq("game_id", gameId).single();
+        if (ug) { setUserGame(ug); setUserRating(ug.rating ?? 0); }
       }
 
       setLoading(false);
     }
+
+    async function fetchIGDB(id: string) {
+      try {
+        const res = await fetch(`/api/games/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setGame({
+            id: data.id,
+            title: data.title,
+            coverUrl: data.coverUrl,
+            genres: data.genres ?? [],
+            platforms: data.platforms ?? [],
+            releaseDate: data.releaseDate,
+            summary: data.summary,
+            rating: data.rating,
+            ratingCount: data.ratingCount ?? 0,
+            screenshots: data.screenshots ?? [],
+            videos: data.videos ?? [],
+          });
+        }
+      } catch {}
+    }
+
     load();
   }, [gameId]);
 
   async function addToLibrary(status: string) {
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
+    if (!user) { router.push("/auth/login"); return; }
     setSaving(true);
-
-    // Ensure game exists in DB
     if (game) {
       await supabase.from("games").upsert({
-        id: game.id,
-        title: game.title,
-        cover_url: game.coverUrl,
-        genres: game.genres,
-        platforms: game.platforms,
-        release_date: game.releaseDate,
-        summary: game.summary,
+        id: game.id, title: game.title, cover_url: game.coverUrl,
+        genres: game.genres, platforms: game.platforms,
+        release_date: game.releaseDate, summary: game.summary,
       });
     }
-
     await supabase.from("user_games").upsert({
-      user_id: user.id,
-      game_id: gameId,
-      status,
-      updated_at: new Date().toISOString(),
+      user_id: user.id, game_id: gameId, status, updated_at: new Date().toISOString(),
     });
-
-    setUserGame((prev) => ({ ...prev, status, playtime_minutes: prev?.playtime_minutes ?? 0, rating: prev?.rating ?? null, review: prev?.review ?? null }));
+    setUserGame((prev) => ({ status, playtime_minutes: prev?.playtime_minutes ?? 0, rating: prev?.rating ?? null, review: prev?.review ?? null }));
     setSaving(false);
   }
 
-  async function updateRating(newRating: number) {
+  async function updateRating(r: number) {
     if (!user || !userGame) return;
-    setRating(newRating);
-    await supabase.from("user_games").update({ rating: newRating, updated_at: new Date().toISOString() }).eq("user_id", user.id).eq("game_id", gameId);
-    setUserGame((prev) => prev ? { ...prev, rating: newRating } : null);
+    setUserRating(r);
+    await supabase.from("user_games").update({ rating: r, updated_at: new Date().toISOString() }).eq("user_id", user.id).eq("game_id", gameId);
+    setUserGame((prev) => prev ? { ...prev, rating: r } : null);
   }
 
   async function savePlaytime() {
@@ -160,18 +151,12 @@ export default function GameDetailPage() {
   async function removeFromLibrary() {
     if (!user) return;
     await supabase.from("user_games").delete().eq("user_id", user.id).eq("game_id", gameId);
-    setUserGame(null);
-    setRating(0);
+    setUserGame(null); setUserRating(0);
   }
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   }
-
   if (!game) {
     return <p className="text-text-secondary text-center py-20">Game not found</p>;
   }
@@ -181,7 +166,7 @@ export default function GameDetailPage() {
   const inLibrary = !!userGame;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       {/* Hero */}
       <div className="relative rounded-2xl overflow-hidden mb-8">
         {game.coverUrl && (
@@ -197,9 +182,22 @@ export default function GameDetailPage() {
           )}
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl font-bold">{game.title}</h1>
-            {game.releaseDate && (
-              <p className="text-text-secondary mt-1">{game.releaseDate.substring(0, 4)}</p>
+            {game.releaseDate && <p className="text-text-secondary mt-1">{game.releaseDate.substring(0, 4)}</p>}
+
+            {/* Rating */}
+            {game.rating && (
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex items-center gap-1.5 bg-primary/15 px-3 py-1.5 rounded-lg">
+                  <span className="text-lg">⭐</span>
+                  <span className="font-bold text-primary">{game.rating}</span>
+                  <span className="text-xs text-text-muted">/ 100</span>
+                </div>
+                {game.ratingCount > 0 && (
+                  <span className="text-xs text-text-muted">{game.ratingCount} ratings</span>
+                )}
+              </div>
             )}
+
             {game.genres.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {game.genres.map((g) => (
@@ -221,17 +219,12 @@ export default function GameDetailPage() {
       {/* Add to Library / Status */}
       {!inLibrary ? (
         <div className="card-glass p-6 mb-6">
-          <h3 className="font-semibold mb-4">Add to Library</h3>
+          <h3 className="font-semibold text-lg mb-4">Add to Library</h3>
           <div className="flex flex-wrap gap-2">
             {STATUSES.map((s) => (
-              <button
-                key={s.value}
-                onClick={() => addToLibrary(s.value)}
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition text-sm"
-              >
-                <span>{s.icon}</span>
-                <span>{s.label}</span>
+              <button key={s.value} onClick={() => addToLibrary(s.value)} disabled={saving}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl border border-border hover:border-primary/50 hover:bg-primary/5 transition text-sm font-medium">
+                <span>{s.icon}</span><span>{s.label}</span>
               </button>
             ))}
           </div>
@@ -244,110 +237,144 @@ export default function GameDetailPage() {
       ) : (
         <div className="card-glass p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">In Your Library</h3>
+            <h3 className="font-semibold text-lg">In Your Library</h3>
             <button onClick={removeFromLibrary} className="text-xs text-error hover:underline">Remove</button>
           </div>
 
-          {/* Status picker */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-5">
             {STATUSES.map((s) => (
-              <button
-                key={s.value}
-                onClick={() => addToLibrary(s.value)}
+              <button key={s.value} onClick={() => addToLibrary(s.value)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
-                  userGame?.status === s.value
-                    ? `${s.color} border-transparent text-white font-medium`
-                    : "border-border text-text-secondary hover:border-text-muted"
-                }`}
-              >
-                <span>{s.icon}</span>
-                <span>{s.label}</span>
+                  userGame?.status === s.value ? `${s.color} border-transparent text-white font-medium` : "border-border text-text-secondary hover:border-text-muted"
+                }`}>
+                <span>{s.icon}</span><span>{s.label}</span>
               </button>
             ))}
           </div>
 
-          {/* Rating */}
-          <div className="mb-5">
-            <p className="text-sm text-text-secondary mb-2">Your Rating</p>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <button
-                  key={n}
-                  onClick={() => updateRating(n)}
-                  onMouseEnter={() => setHoverRating(n)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  className="text-2xl transition-transform hover:scale-125"
-                >
-                  {n <= (hoverRating || rating) ? "★" : "☆"}
-                </button>
-              ))}
-              {rating > 0 && <span className="text-sm text-text-muted self-center ml-2">{rating}/5</span>}
-            </div>
-          </div>
-
-          {/* Playtime */}
-          <div>
-            <p className="text-sm text-text-secondary mb-2">Playtime</p>
-            {editingPlaytime ? (
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  step="0.5"
-                  value={playtimeInput}
-                  onChange={(e) => setPlaytimeInput(e.target.value)}
-                  placeholder="Hours"
-                  className="w-32 rounded-lg bg-surface-elevated border border-border px-3 py-2 text-sm text-foreground"
-                  autoFocus
-                />
-                <button onClick={savePlaytime} className="btn-primary text-sm px-4 py-2">Save</button>
-                <button onClick={() => setEditingPlaytime(false)} className="text-sm text-text-muted px-3">Cancel</button>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-text-secondary mb-2">Your Rating</p>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} onClick={() => updateRating(n)} onMouseEnter={() => setHoverRating(n)} onMouseLeave={() => setHoverRating(0)}
+                    className="text-2xl transition-transform hover:scale-125">
+                    {n <= (hoverRating || userRating) ? "★" : "☆"}
+                  </button>
+                ))}
               </div>
-            ) : (
-              <button
-                onClick={() => { setPlaytimeInput(String(Math.round((userGame?.playtime_minutes ?? 0) / 60 * 10) / 10)); setEditingPlaytime(true); }}
-                className="text-lg font-bold text-accent hover:underline"
-              >
-                {Math.round((userGame?.playtime_minutes ?? 0) / 60 * 10) / 10}h
-                <span className="text-xs text-text-muted font-normal ml-2">tap to edit</span>
-              </button>
-            )}
+            </div>
+            <div>
+              <p className="text-sm text-text-secondary mb-2">Playtime</p>
+              {editingPlaytime ? (
+                <div className="flex gap-2">
+                  <input type="number" step="0.5" value={playtimeInput} onChange={(e) => setPlaytimeInput(e.target.value)} placeholder="Hours"
+                    className="w-28 rounded-lg bg-surface-elevated border border-border px-3 py-2 text-sm text-foreground" autoFocus />
+                  <button onClick={savePlaytime} className="btn-primary text-xs px-3 py-2">Save</button>
+                </div>
+              ) : (
+                <button onClick={() => { setPlaytimeInput(String(Math.round((userGame?.playtime_minutes ?? 0) / 60 * 10) / 10)); setEditingPlaytime(true); }}
+                  className="text-lg font-bold text-accent hover:underline">
+                  {Math.round((userGame?.playtime_minutes ?? 0) / 60 * 10) / 10}h
+                  <span className="text-xs text-text-muted font-normal ml-2">edit</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Quick links: Wiki, Map, Achievements */}
-      {wikiConfig && (
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <Link
-            href={`/wiki/${wikiKey ?? ""}`}
-            className="card-glass p-4 text-center hover:border-primary/30 transition group"
-          >
+      {/* Quick actions: Track Progress (Wiki), Map, Achievements */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        {wikiKey && (
+          <Link href={`/wiki/${wikiKey}`} className="card-glass p-4 text-center hover:border-primary/30 transition group">
             <span className="text-2xl">📖</span>
-            <p className="text-sm font-medium mt-2 group-hover:text-primary transition">Wiki</p>
+            <p className="text-sm font-medium mt-2 group-hover:text-primary transition">Track Progress</p>
+            <p className="text-xs text-text-muted">Wiki & Checklists</p>
           </Link>
-          {wikiConfig.maps.length > 0 && (
-            <div className="card-glass p-4 text-center opacity-50">
-              <span className="text-2xl">🗺️</span>
-              <p className="text-sm font-medium mt-2">Map</p>
-              <p className="text-xs text-text-muted">Coming soon</p>
-            </div>
-          )}
+        )}
+        {wikiKey && wikiConfig?.maps && wikiConfig.maps.length > 0 && (
           <div className="card-glass p-4 text-center opacity-50">
-            <span className="text-2xl">🏆</span>
-            <p className="text-sm font-medium mt-2">Achievements</p>
+            <span className="text-2xl">🗺️</span>
+            <p className="text-sm font-medium mt-2">Interactive Map</p>
             <p className="text-xs text-text-muted">Coming soon</p>
           </div>
+        )}
+        <div className="card-glass p-4 text-center opacity-50">
+          <span className="text-2xl">🏆</span>
+          <p className="text-sm font-medium mt-2">Achievements</p>
+          <p className="text-xs text-text-muted">Coming soon</p>
+        </div>
+        <div className="card-glass p-4 text-center opacity-50">
+          <span className="text-2xl">⏱️</span>
+          <p className="text-sm font-medium mt-2">HowLongToBeat</p>
+          <p className="text-xs text-text-muted">Coming soon</p>
+        </div>
+      </div>
+
+      {/* YouTube Videos */}
+      {game.videos.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-xl font-bold mb-4">Videos</h3>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {game.videos.slice(0, 4).map((video) => (
+              <div key={video.id} className="rounded-xl overflow-hidden border border-border/50">
+                <div className="relative aspect-video">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${video.id}`}
+                    title={video.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+                <div className="p-3 bg-surface">
+                  <p className="text-sm font-medium truncate">{video.name}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Summary */}
+      {/* Screenshots */}
+      {game.screenshots.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-xl font-bold mb-4">Screenshots</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {game.screenshots.slice(0, 6).map((url, i) => (
+              <img key={i} src={url} alt={`Screenshot ${i + 1}`} className="w-full rounded-xl border border-border/50" />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* About */}
       {game.summary && (
-        <div className="card-glass p-6 mb-6">
-          <h3 className="font-semibold mb-3">About</h3>
+        <div className="card-glass p-6 mb-8">
+          <h3 className="text-xl font-bold mb-3">About</h3>
           <p className="text-text-secondary leading-relaxed">{game.summary}</p>
         </div>
       )}
+
+      {/* User Reviews placeholder */}
+      <div className="card-glass p-6 mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold">User Reviews</h3>
+          {user && inLibrary && (
+            <button className="btn-primary text-sm px-4 py-2">Write Review</button>
+          )}
+        </div>
+        <div className="text-center py-8">
+          <span className="text-4xl">💬</span>
+          <p className="text-text-secondary mt-3">No reviews yet. Be the first!</p>
+          {!user && (
+            <p className="text-xs text-text-muted mt-2">
+              <Link href="/auth/login" className="text-primary hover:underline">Sign in</Link> to write a review
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
-
