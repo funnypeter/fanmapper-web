@@ -23,6 +23,7 @@ export default function MapPage() {
     MARKER_CATEGORIES.map((c) => ({ ...c, enabled: c.default }))
   );
   const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!config || config.maps.length === 0) {
     return (
@@ -81,20 +82,32 @@ fetch('https://${config.wiki}.fandom.com/api.php?action=getmap&name=${encodeURIC
   return (
     <div className="relative" style={{ height: "calc(100vh - 120px)" }}>
       {/* Header overlay */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-background/80 backdrop-blur-xl border-b border-border/30">
-        <div className="flex items-center gap-3">
-          <Link href={`/wiki/${gameKey}`} className="text-text-secondary hover:text-foreground transition">←</Link>
-          <div>
-            <p className="font-semibold text-sm">{config.gameTitle}</p>
-            <p className="text-xs text-text-muted">{mapName}</p>
+      <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/30">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Link href={`/wiki/${gameKey}`} className="text-text-secondary hover:text-foreground transition">←</Link>
+            <div>
+              <p className="font-semibold text-sm">{config.gameTitle}</p>
+              <p className="text-xs text-text-muted">{mapName}</p>
+            </div>
           </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-3 py-1.5 rounded-lg text-sm transition ${showFilters ? "bg-primary text-white" : "bg-surface border border-border text-text-secondary"}`}
+          >
+            Filter
+          </button>
         </div>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`px-3 py-1.5 rounded-lg text-sm transition ${showFilters ? "bg-primary text-white" : "bg-surface border border-border text-text-secondary"}`}
-        >
-          Filter
-        </button>
+        {/* Map search */}
+        <div className="px-4 pb-3">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search locations..."
+            className="w-full rounded-lg bg-surface-elevated border border-border px-3 py-2 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:border-primary/50 transition"
+          />
+        </div>
       </div>
 
       {/* Filter panel */}

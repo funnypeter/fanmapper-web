@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { findWikiConfig, GAME_REGISTRY } from "@/lib/services/gameRegistry";
+import ReviewSection from "@/components/ReviewSection";
 
 interface GameData {
   id: string;
@@ -375,22 +376,8 @@ export default function GameDetailPage() {
       )}
 
       {/* Reviews */}
-      <div className="card-glass p-6 mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">User Reviews</h3>
-          {user && inLibrary && (
-            <button className="btn-primary text-sm px-4 py-2">Write Review</button>
-          )}
-        </div>
-        <div className="text-center py-8">
-          <span className="text-4xl">💬</span>
-          <p className="text-text-secondary mt-3">No reviews yet. Be the first!</p>
-          {!user && (
-            <p className="text-xs text-text-muted mt-2">
-              <Link href="/auth/login" className="text-primary hover:underline">Sign in</Link> to write a review
-            </p>
-          )}
-        </div>
+      <div className="mb-8">
+        <ReviewSection gameId={gameId} isLoggedIn={!!user} isInLibrary={inLibrary} />
       </div>
     </div>
   );

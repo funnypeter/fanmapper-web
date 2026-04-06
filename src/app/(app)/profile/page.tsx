@@ -25,6 +25,31 @@ export default async function ProfilePage() {
   const playing = recentGames?.filter((g: any) => g.status === "playing") ?? [];
   const completed = recentGames?.filter((g: any) => g.status === "completed") ?? [];
 
+  // Achievement stats
+  const { count: totalAchievements } = await supabase
+    .from("user_achievements")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const { count: earnedAchievements } = await supabase
+    .from("user_achievements")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("is_earned", true);
+
+  // Total playtime
+  const { data: playtimeData } = await supabase
+    .from("user_games")
+    .select("playtime_minutes")
+    .eq("user_id", user.id);
+  const totalPlaytimeHours = Math.round(
+    (playtimeData ?? []).reduce((sum: number, g: any) => sum + (g.playtime_minutes ?? 0), 0) / 60
+  );
+
+  const achPercent = (totalAchievements ?? 0) > 0
+    ? Math.round(((earnedAchievements ?? 0) / (totalAchievements ?? 1)) * 100)
+    : 0;
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Profile header */}
@@ -42,18 +67,22 @@ export default async function ProfilePage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
         <div className="card-glass p-5 text-center">
           <p className="text-3xl font-bold text-primary">{gameCount ?? 0}</p>
           <p className="text-xs text-text-muted mt-1">Games</p>
         </div>
         <div className="card-glass p-5 text-center">
-          <p className="text-3xl font-bold text-accent">{playing.length}</p>
-          <p className="text-xs text-text-muted mt-1">Playing</p>
+          <p className="text-3xl font-bold text-accent">{totalPlaytimeHours}</p>
+          <p className="text-xs text-text-muted mt-1">Hours Played</p>
         </div>
         <div className="card-glass p-5 text-center">
-          <p className="text-3xl font-bold text-success">{completed.length}</p>
-          <p className="text-xs text-text-muted mt-1">Completed</p>
+          <p className="text-3xl font-bold text-xp">{earnedAchievements ?? 0}</p>
+          <p className="text-xs text-text-muted mt-1">Achievements</p>
+        </div>
+        <div className="card-glass p-5 text-center">
+          <p className="text-3xl font-bold text-success">{achPercent}%</p>
+          <p className="text-xs text-text-muted mt-1">Completion</p>
         </div>
       </div>
 
@@ -100,7 +129,7 @@ export default async function ProfilePage() {
             {profile?.psn_id ? (
               <span className="text-xs text-success font-medium bg-success/10 px-2.5 py-1 rounded-full">Linked</span>
             ) : (
-              <span className="text-xs text-text-muted">Coming soon</span>
+              <Link href="/profile/link-psn" className="text-xs text-primary font-medium hover:underline">Connect</Link>
             )}
           </div>
           <div className="flex items-center justify-between p-3 rounded-lg bg-surface-elevated/50">
@@ -113,7 +142,7 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      {/* Settings */}
+      {/* Account */}
       <div className="card-glass p-6 mt-6">
         <h3 className="font-semibold mb-4">Account</h3>
         <div className="flex items-center justify-between">
