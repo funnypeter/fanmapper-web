@@ -206,6 +206,19 @@ export default function GameDetailPage() {
         </div>
       </div>
 
+      {/* Track Progress — always visible for supported games */}
+      {wikiKey && (
+        <Link href={`/wiki/${wikiKey}`}
+          className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group">
+          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
+          <div className="flex-1">
+            <p className="font-semibold group-hover:text-primary transition">Track Progress</p>
+            <p className="text-sm text-text-secondary">Wiki checklists for characters, items, bosses &amp; more</p>
+          </div>
+          <span className="text-primary text-lg">→</span>
+        </Link>
+      )}
+
       {/* Library management (only visible after adding) */}
       {inLibrary && (
         <div className="card-glass p-6 mb-6">
@@ -258,18 +271,6 @@ export default function GameDetailPage() {
             </div>
           </div>
 
-          {/* Track Progress via Wiki */}
-          {wikiKey && (
-            <Link href={`/wiki/${wikiKey}`}
-              className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition">
-              <span className="text-2xl">📖</span>
-              <div>
-                <p className="font-semibold text-primary">Track Progress</p>
-                <p className="text-xs text-text-secondary">Wiki checklists, characters, items, bosses &amp; more</p>
-              </div>
-              <span className="ml-auto text-primary">→</span>
-            </Link>
-          )}
         </div>
       )}
 
