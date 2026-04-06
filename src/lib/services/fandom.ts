@@ -60,23 +60,24 @@ export async function searchWiki(wiki: string, query: string, limit = 20) {
   }));
 }
 
-// Fetch thumbnail images for a batch of page titles (up to 50 at a time)
-export async function getPageThumbnails(wiki: string, titles: string[]): Promise<Record<string, string>> {
-  const thumbnails: Record<string, string> = {};
-  // MediaWiki API supports up to 50 titles per request
-  for (let i = 0; i < titles.length; i += 50) {
-    const batch = titles.slice(i, i + 50);
-    const data = await fandomApi(wiki, {
-      action: "query",
-      titles: batch.join("|"),
-      prop: "pageimages",
-      pithumbsize: "300",
-      pilimit: "50",
-    });
-    for (const page of data.query?.pages ?? []) {
-      if (page.thumbnail?.source) {
-        thumbnails[page.title] = page.thumbnail.source;
+// Fetch thumbnail images using Fandom's Nirvana ArticlesApi
+export async function getPageThumbnails(wiki: string, pageIds: number[]): Promise<Record<number, string>> {
+  const thumbnails: Record<number, string> = {};
+  // Fandom API supports up to 50 IDs per request
+  for (let i = 0; i < pageIds.length; i += 50) {
+    const batch = pageIds.slice(i, i + 50);
+    const url = `https://${wiki}.fandom.com/wikia.php?controller=ArticlesApi&method=getDetails&ids=${batch.join(",")}&width=300&height=400`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      for (const [id, item] of Object.entries(data.items ?? {}) as [string, any][]) {
+        if (item.thumbnail) {
+          thumbnails[Number(id)] = item.thumbnail;
+        }
       }
+    } catch {
+      // Continue on failure
     }
   }
   return thumbnails;

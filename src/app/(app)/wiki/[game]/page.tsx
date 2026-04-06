@@ -28,7 +28,7 @@ export default function WikiPage() {
 
   const [activeSection, setActiveSection] = useState<Section | "search">("characters");
   const [pages, setPages] = useState<{ title: string; pageId: number }[]>([]);
-  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
+  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -48,8 +48,8 @@ export default function WikiPage() {
     try {
       const results = await getCategory(config.wiki, cat, 200);
       setPages(results);
-      // Fetch thumbnails for the results
-      const thumbs = await getPageThumbnails(config.wiki, results.map((r) => r.title));
+      // Fetch thumbnails using page IDs
+      const thumbs = await getPageThumbnails(config.wiki, results.map((r) => r.pageId));
       setThumbnails(thumbs);
     } catch {
       setPages([]);
@@ -67,7 +67,7 @@ export default function WikiPage() {
       const results = await searchWiki(config.wiki, searchQuery, 30);
       const mapped = results.map((r: { title: string; pageId: number }) => ({ title: r.title, pageId: r.pageId }));
       setPages(mapped);
-      const thumbs = await getPageThumbnails(config.wiki, mapped.map((r: { title: string }) => r.title));
+      const thumbs = await getPageThumbnails(config.wiki, mapped.map((r: { pageId: number }) => r.pageId));
       setThumbnails(thumbs);
     } catch {
       setPages([]);
@@ -137,7 +137,7 @@ export default function WikiPage() {
       ) : pages.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {pages.map((p) => {
-            const thumb = thumbnails[p.title];
+            const thumb = thumbnails[p.pageId];
             return (
               <Link
                 key={p.pageId}
