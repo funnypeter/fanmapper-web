@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_ROUTES = ["/", "/auth/login", "/auth/signup", "/auth/callback", "/api/"];
+const PUBLIC_ROUTES = ["/", "/auth/login", "/auth/signup", "/auth/callback", "/api/", "/explore", "/wiki"];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -34,6 +34,13 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect logged-in users from landing to explore
+  if (user && pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/explore";
     return NextResponse.redirect(url);
   }
 

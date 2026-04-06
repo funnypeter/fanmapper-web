@@ -1,26 +1,40 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background/95 backdrop-blur px-6 py-3">
-        <h1 className="text-xl font-bold">
-          Fan<span className="text-primary">Mapper</span>
-        </h1>
-        <nav className="flex items-center gap-6">
-          <Link href="/library" className="text-sm text-text-secondary hover:text-foreground transition">Library</Link>
-          <Link href="/explore" className="text-sm text-text-secondary hover:text-foreground transition">Explore</Link>
-          <Link href="/profile" className="text-sm text-text-secondary hover:text-foreground transition">Profile</Link>
-        </nav>
+      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
+          <Link href="/explore" className="text-xl font-bold tracking-tight">
+            Fan<span className="text-primary">Mapper</span>
+          </Link>
+          <nav className="flex items-center gap-1">
+            <Link href="/explore" className="px-4 py-2 rounded-lg text-sm text-text-secondary hover:text-foreground hover:bg-surface transition">
+              Explore
+            </Link>
+            {user && (
+              <Link href="/library" className="px-4 py-2 rounded-lg text-sm text-text-secondary hover:text-foreground hover:bg-surface transition">
+                Library
+              </Link>
+            )}
+            {user ? (
+              <Link href="/profile" className="px-4 py-2 rounded-lg text-sm text-text-secondary hover:text-foreground hover:bg-surface transition">
+                Profile
+              </Link>
+            ) : (
+              <Link href="/auth/login" className="btn-primary text-sm px-4 py-2">
+                Sign In
+              </Link>
+            )}
+          </nav>
+        </div>
       </header>
-      <main className="flex-1 px-6 py-6">
-        <div className="mx-auto max-w-5xl">{children}</div>
+      <main className="flex-1">
+        <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
       </main>
     </div>
   );

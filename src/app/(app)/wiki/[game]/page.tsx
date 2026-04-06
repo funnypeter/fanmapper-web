@@ -8,6 +8,19 @@ import { getCategory, searchWiki } from "@/lib/services/fandom";
 
 type Section = "characters" | "items" | "weapons" | "locations" | "bosses" | "quests";
 
+const SECTION_ICONS: Record<string, string> = {
+  characters: "👤", items: "📦", weapons: "⚔️", armor: "🛡️",
+  locations: "📍", bosses: "💀", quests: "📜", walkthroughs: "🗺️",
+};
+
+const COVER_MAP: Record<string, string> = {
+  "elden-ring": "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg",
+  "skyrim": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1tnw.jpg",
+  "fallout-4": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg",
+  "genshin-impact": "https://images.igdb.com/igdb/image/upload/t_cover_big/co3s3x.jpg",
+  "zelda-totk": "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg",
+};
+
 export default function WikiPage() {
   const params = useParams();
   const gameKey = params.game as string;
@@ -42,53 +55,78 @@ export default function WikiPage() {
 
   if (!config) return <p className="text-text-secondary">Game not found in registry.</p>;
 
+  const coverUrl = COVER_MAP[gameKey];
+
   return (
     <div>
-      <h2 className="text-3xl font-bold">{config.gameTitle} Wiki</h2>
-      <p className="text-sm text-text-muted mb-6">{config.wiki}.fandom.com — CC BY-SA 3.0</p>
+      {/* Hero banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8">
+        {coverUrl && (
+          <div className="absolute inset-0">
+            <img src={coverUrl} alt="" className="w-full h-full object-cover blur-xl scale-110 opacity-30" />
+          </div>
+        )}
+        <div className="relative flex items-end gap-6 p-8">
+          {coverUrl && <img src={coverUrl} alt={config.gameTitle} className="w-24 h-32 rounded-xl object-cover shadow-lg border border-border/50" />}
+          <div>
+            <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">Fandom Wiki</p>
+            <h2 className="text-3xl font-bold">{config.gameTitle}</h2>
+            <p className="text-sm text-text-secondary mt-1">{config.wiki}.fandom.com · CC BY-SA 3.0</p>
+          </div>
+        </div>
+      </div>
 
+      {/* Search */}
       <form onSubmit={handleSearch} className="flex gap-3 mb-6">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={`Search ${config.gameTitle} wiki...`}
-          className="flex-1 rounded-lg bg-surface border border-border px-4 py-2 text-foreground text-sm"
+          className="flex-1 rounded-xl bg-surface border border-border px-5 py-3 text-foreground placeholder:text-text-muted focus:outline-none focus:border-primary/50 transition"
         />
-        <button type="submit" className="btn-primary text-sm">Search</button>
+        <button type="submit" className="btn-primary px-6">Search</button>
       </form>
 
-      <div className="flex gap-2 flex-wrap mb-6">
+      {/* Section tabs */}
+      <div className="flex gap-2 flex-wrap mb-8">
         {sections.map((s) => (
           <button
             key={s}
             onClick={() => { setActiveSection(s); setSearchQuery(""); }}
-            className={`px-3 py-1.5 rounded-full text-sm border transition ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm border transition ${
               activeSection === s
-                ? "bg-primary border-primary text-white"
-                : "bg-surface border-border text-text-secondary hover:text-foreground"
+                ? "bg-primary border-primary text-white font-medium"
+                : "bg-surface border-border text-text-secondary hover:text-foreground hover:border-text-muted"
             }`}
           >
+            <span>{SECTION_ICONS[s] ?? "📄"}</span>
             {s.charAt(0).toUpperCase() + s.slice(1)}
           </button>
         ))}
       </div>
 
+      {/* Page list */}
       {loading ? (
-        <p className="text-text-secondary">Loading...</p>
-      ) : (
-        <div className="grid gap-1">
+        <div className="flex justify-center py-16">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : pages.length > 0 ? (
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
           {pages.map((p) => (
             <Link
               key={p.pageId}
               href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
-              className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-surface transition"
+              className="card-glass p-4 hover:border-primary/30 transition group"
             >
-              <span>{p.title}</span>
-              <span className="text-text-muted text-sm">→</span>
+              <p className="font-medium group-hover:text-primary transition">{p.title}</p>
+              <p className="text-xs text-text-muted mt-1">View article →</p>
             </Link>
           ))}
-          {pages.length === 0 && <p className="text-text-secondary text-center mt-8">No pages found</p>}
+        </div>
+      ) : (
+        <div className="text-center py-16">
+          <p className="text-text-secondary">No pages found</p>
         </div>
       )}
     </div>
