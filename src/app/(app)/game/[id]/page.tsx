@@ -191,32 +191,26 @@ export default function GameDetailPage() {
               </div>
             )}
 
-            {/* Add to Library button */}
-            {!inLibrary && (
-              <button
-                onClick={handleAddToLibrary}
-                disabled={saving}
-                className="btn-primary mt-5 flex items-center gap-2 text-sm"
-              >
-                <span className="text-lg">+</span>
-                {saving ? "Adding..." : "Add to Library"}
-              </button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Track Progress — always visible for supported games */}
-      {wikiKey && (
-        <Link href={`/wiki/${wikiKey}`}
-          className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group">
-          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
-          <div className="flex-1">
-            <p className="font-semibold group-hover:text-primary transition">Track Progress</p>
-            <p className="text-sm text-text-secondary">Wiki checklists for characters, items, bosses &amp; more</p>
-          </div>
-          <span className="text-primary text-lg">→</span>
-        </Link>
+      {/* Add to Library — prominent standalone card */}
+      {!inLibrary && (
+        <div className="card-glass p-6 mb-6 text-center">
+          <button
+            onClick={handleAddToLibrary}
+            disabled={saving}
+            className="btn-primary text-base px-8 py-3.5 w-full sm:w-auto"
+          >
+            {saving ? "Adding..." : "+ Add to Library"}
+          </button>
+          {!user && (
+            <p className="text-xs text-text-muted mt-3">
+              <Link href="/auth/login" className="text-primary hover:underline">Sign in</Link> to add games to your library
+            </p>
+          )}
+        </div>
       )}
 
       {/* Library management (only visible after adding) */}
@@ -272,6 +266,19 @@ export default function GameDetailPage() {
           </div>
 
         </div>
+      )}
+
+      {/* Track Progress — separate card for supported games */}
+      {wikiKey && (
+        <Link href={`/wiki/${wikiKey}`}
+          className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group">
+          <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
+          <div className="flex-1">
+            <p className="font-semibold group-hover:text-primary transition">Track Progress</p>
+            <p className="text-sm text-text-secondary">Wiki checklists for characters, items, bosses &amp; more</p>
+          </div>
+          <span className="text-primary text-lg">→</span>
+        </Link>
       )}
 
       {/* Videos — horizontal scroll */}
