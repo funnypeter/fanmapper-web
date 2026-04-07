@@ -185,6 +185,19 @@ export default function LinkSteamPage() {
               {importing ? "Importing..." : "Import Games & Achievements"}
             </button>
 
+            <button
+              onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                  await supabase.from("profiles").update({ steam_id: null }).eq("id", user.id);
+                  setProfile(null);
+                }
+              }}
+              className="w-full mt-3 py-3 rounded-xl border border-error/30 text-error text-sm font-medium hover:bg-error/10 transition"
+            >
+              Unlink Steam Account
+            </button>
+
             {progress && (
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-text-muted mb-2">
