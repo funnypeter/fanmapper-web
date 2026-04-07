@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
-import { getCategory, searchWiki } from "@/lib/services/fandom";
+import { getCategory } from "@/lib/services/fandom";
 
 const SECTION_ICONS: Record<string, string> = {
   characters: "👤", items: "📦", weapons: "⚔️", armor: "🛡️",
@@ -18,7 +18,7 @@ export default function WikiPage() {
   const config = GAME_REGISTRY[gameKey];
 
   const [activeSection, setActiveSection] = useState<string>("characters");
-  const [pages, setPages] = useState<{ title: string; pageId: number }[]>([]);
+  const [allPages, setAllPages] = useState<{ title: string; pageId: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [checked, setChecked] = useState<Set<number>>(() => {
@@ -44,8 +44,9 @@ export default function WikiPage() {
     .map(([k]) => k);
 
   useEffect(() => {
-    if (!config || activeSection === "search") return;
+    if (!config) return;
     loadSection(activeSection);
+    setSearchQuery(""); // Clear search on section change
   }, [activeSection, config]);
 
   async function loadSection(section: string) {
@@ -54,33 +55,25 @@ export default function WikiPage() {
     setLoading(true);
     try {
       const results = await getCategory(config.wiki, cat, 200);
-      setPages(results);
+      setAllPages(results);
     } catch {
-      setPages([]);
+      setAllPages([]);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (!searchQuery.trim() || !config) return;
-    setActiveSection("search");
-    setLoading(true);
-    try {
-      const results = await searchWiki(config.wiki, searchQuery, 30);
-      const mapped = results.map((r: { title: string; pageId: number }) => ({ title: r.title, pageId: r.pageId }));
-      setPages(mapped);
-    } catch {
-      setPages([]);
-    } finally {
-      setLoading(false);
-    }
-  }
+  // Live filter pages by search query within current section
+  const filteredPages = useMemo(() => {
+    if (!searchQuery.trim()) return allPages;
+    const q = searchQuery.toLowerCase();
+    return allPages.filter((p) => p.title.toLowerCase().includes(q));
+  }, [allPages, searchQuery]);
 
   if (!config) return <p className="text-text-secondary">Game not found in registry.</p>;
 
   const coverUrl = config?.cover;
+  const sectionIcon = SECTION_ICONS[activeSection] ?? "📄";
 
   return (
     <div>
@@ -101,24 +94,31 @@ export default function WikiPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <form onSubmit={handleSearch} className="flex gap-3 mb-6">
+      {/* Search — live filter within active section */}
+      <div className="relative mb-6">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={`Search ${config.gameTitle} wiki...`}
-          className="flex-1 rounded-xl bg-surface border border-border px-5 py-3 text-foreground placeholder:text-text-muted focus:outline-none focus:border-primary/50 transition"
+          placeholder={`Filter ${activeSection}...`}
+          className="w-full rounded-xl bg-surface border border-border px-5 py-3 text-foreground placeholder:text-text-muted focus:outline-none focus:border-primary/50 transition"
         />
-        <button type="submit" className="btn-primary px-6">Search</button>
-      </form>
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-foreground transition"
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
       {/* Section tabs */}
       <div className="flex gap-2 flex-wrap mb-8">
         {sections.map((s) => (
           <button
             key={s}
-            onClick={() => { setActiveSection(s); setSearchQuery(""); }}
+            onClick={() => setActiveSection(s)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm border transition ${
               activeSection === s
                 ? "bg-primary border-primary text-white font-medium"
@@ -132,16 +132,16 @@ export default function WikiPage() {
       </div>
 
       {/* Progress */}
-      {!loading && pages.length > 0 && (
+      {!loading && filteredPages.length > 0 && (
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-2 rounded-full bg-surface overflow-hidden">
             <div
               className="h-full rounded-full bg-success transition-all duration-500"
-              style={{ width: `${pages.length > 0 ? (pages.filter((p) => checked.has(p.pageId)).length / pages.length) * 100 : 0}%` }}
+              style={{ width: `${filteredPages.length > 0 ? (filteredPages.filter((p) => checked.has(p.pageId)).length / filteredPages.length) * 100 : 0}%` }}
             />
           </div>
           <span className="text-xs text-text-muted whitespace-nowrap">
-            {pages.filter((p) => checked.has(p.pageId)).length} / {pages.length}
+            {filteredPages.filter((p) => checked.has(p.pageId)).length} / {filteredPages.length}
           </span>
         </div>
       )}
@@ -151,14 +151,12 @@ export default function WikiPage() {
         <div className="flex justify-center py-16">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : pages.length > 0 ? (
+      ) : filteredPages.length > 0 ? (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
-          {pages.map((p) => {
+          {filteredPages.map((p) => {
             const isChecked = checked.has(p.pageId);
-            const icon = SECTION_ICONS[activeSection === "search" ? "items" : activeSection] ?? "📄";
             return (
               <div key={p.pageId} className={`card-glass flex items-center gap-3 pr-2 transition ${isChecked ? "opacity-60" : ""}`}>
-                {/* Checkbox */}
                 <button
                   onClick={() => toggleChecked(p.pageId)}
                   className={`shrink-0 w-10 h-full flex items-center justify-center rounded-l-xl transition ${
@@ -174,18 +172,16 @@ export default function WikiPage() {
                   )}
                 </button>
 
-                {/* Icon + link */}
                 <Link
                   href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
                   className="flex-1 flex items-center gap-2.5 py-3 group min-w-0"
                 >
-                  <span className="text-base shrink-0">{icon}</span>
+                  <span className="text-base shrink-0">{sectionIcon}</span>
                   <span className={`font-medium text-sm truncate transition ${isChecked ? "line-through text-text-muted" : "group-hover:text-primary"}`}>
                     {p.title}
                   </span>
                 </Link>
 
-                {/* Arrow */}
                 <Link href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`} className="text-text-muted text-xs shrink-0 p-1">
                   →
                 </Link>
@@ -195,7 +191,9 @@ export default function WikiPage() {
         </div>
       ) : (
         <div className="text-center py-16">
-          <p className="text-text-secondary">No pages found</p>
+          <p className="text-text-secondary">
+            {searchQuery ? `No ${activeSection} match "${searchQuery}"` : `No ${activeSection} found`}
+          </p>
         </div>
       )}
     </div>
