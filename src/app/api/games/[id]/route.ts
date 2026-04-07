@@ -61,7 +61,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "Content-Type": "text/plain",
       },
       body: `where id = ${numericId};
-fields id,name,cover.url,genres.name,platforms.name,first_release_date,summary,storyline,screenshots.url,artworks.url,videos.video_id,videos.name,rating,aggregated_rating,total_rating,total_rating_count,external_games.uid,external_games.category,game_time_to_beats.hastily,game_time_to_beats.normally,game_time_to_beats.completely;
+fields id,name,cover.url,genres.name,platforms.name,first_release_date,summary,storyline,screenshots.url,artworks.url,videos.video_id,videos.name,rating,aggregated_rating,total_rating,total_rating_count,external_games.uid,external_games.category,game_time_to_beat.hastily,game_time_to_beat.normally,game_time_to_beat.completely;
 limit 1;`,
     });
 
@@ -84,10 +84,10 @@ limit 1;`,
       screenshots: (r.screenshots ?? []).map((s: any) => s.url ? `https:${s.url.replace("t_thumb", "t_screenshot_big")}` : null).filter(Boolean),
       videos: (r.videos ?? []).map((v: any) => ({ id: v.video_id, name: v.name })),
       steamAppId: await getSteamAppId(r),
-      timeToBeat: r.game_time_to_beats?.[0] ? {
-        hastily: r.game_time_to_beats[0].hastily ? Math.round(r.game_time_to_beats[0].hastily / 3600) : null,
-        normally: r.game_time_to_beats[0].normally ? Math.round(r.game_time_to_beats[0].normally / 3600) : null,
-        completely: r.game_time_to_beats[0].completely ? Math.round(r.game_time_to_beats[0].completely / 3600) : null,
+      timeToBeat: r.game_time_to_beat ? {
+        hastily: r.game_time_to_beat.hastily ? Math.round(r.game_time_to_beat.hastily / 3600) : null,
+        normally: r.game_time_to_beat.normally ? Math.round(r.game_time_to_beat.normally / 3600) : null,
+        completely: r.game_time_to_beat.completely ? Math.round(r.game_time_to_beat.completely / 3600) : null,
       } : null,
     });
   } catch {
