@@ -22,6 +22,33 @@ async function getToken(): Promise<string> {
   return accessToken!;
 }
 
+async function getTimeToBeat(gameId: number): Promise<{ hastily: number | null; normally: number | null; completely: number | null } | null> {
+  try {
+    const token = await getToken();
+    const res = await fetch(`${IGDB_BASE}/game_time_to_beats`, {
+      method: "POST",
+      headers: {
+        "Client-ID": process.env.IGDB_CLIENT_ID!,
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        "Content-Type": "text/plain",
+      },
+      body: `where game_id = ${gameId}; fields hastily,normally,completely; limit 1;`,
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.length === 0) return null;
+    const t = data[0];
+    return {
+      hastily: t.hastily ? Math.round(t.hastily / 3600) : null,
+      normally: t.normally ? Math.round(t.normally / 3600) : null,
+      completely: t.completely ? Math.round(t.completely / 3600) : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function getSteamAppId(igdbGame: any): Promise<string | null> {
   // Try IGDB external_games first (category 1 = Steam)
   const fromIgdb = (igdbGame.external_games ?? []).find((e: any) => e.category === 1)?.uid;
@@ -61,7 +88,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "Content-Type": "text/plain",
       },
       body: `where id = ${numericId};
-fields id,name,cover.url,genres.name,platforms.name,first_release_date,summary,storyline,screenshots.url,artworks.url,videos.video_id,videos.name,rating,aggregated_rating,total_rating,total_rating_count,external_games.uid,external_games.category,game_time_to_beat.hastily,game_time_to_beat.normally,game_time_to_beat.completely;
+fields id,name,cover.url,genres.name,platforms.name,first_release_date,summary,storyline,screenshots.url,artworks.url,videos.video_id,videos.name,rating,aggregated_rating,total_rating,total_rating_count,external_games.uid,external_games.category;
 limit 1;`,
     });
 
@@ -84,11 +111,7 @@ limit 1;`,
       screenshots: (r.screenshots ?? []).map((s: any) => s.url ? `https:${s.url.replace("t_thumb", "t_screenshot_big")}` : null).filter(Boolean),
       videos: (r.videos ?? []).map((v: any) => ({ id: v.video_id, name: v.name })),
       steamAppId: await getSteamAppId(r),
-      timeToBeat: r.game_time_to_beat ? {
-        hastily: r.game_time_to_beat.hastily ? Math.round(r.game_time_to_beat.hastily / 3600) : null,
-        normally: r.game_time_to_beat.normally ? Math.round(r.game_time_to_beat.normally / 3600) : null,
-        completely: r.game_time_to_beat.completely ? Math.round(r.game_time_to_beat.completely / 3600) : null,
-      } : null,
+      timeToBeat: await getTimeToBeat(numericId),
     });
   } catch {
     return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
