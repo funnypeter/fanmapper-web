@@ -18,7 +18,15 @@ export default function WikiArticlePage() {
   useEffect(() => {
     if (!config) return;
     fetchPage(config.wiki, pageTitle).then((data) => {
-      setContent(data?.html ?? null);
+      if (data?.html) {
+        // Fix Fandom lazy-loaded images: swap data-src to src
+        let html = data.html;
+        html = html.replace(/\s+src="data:image[^"]*"/g, "");
+        html = html.replace(/data-src="/g, 'src="');
+        // Remove srcset to prevent broken responsive images
+        html = html.replace(/\s+srcset="[^"]*"/g, "");
+        setContent(html);
+      }
       setLoading(false);
     });
   }, [config, pageTitle]);
