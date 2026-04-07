@@ -25,11 +25,10 @@ export default function WikiArticlePage() {
         html = html.replace(/data-src="/g, 'src="');
         // Remove srcset to prevent broken responsive images
         html = html.replace(/\s+srcset="[^"]*"/g, "");
-        // Add no-referrer to bypass hotlink protection
-        html = html.replace(/<img /g, '<img referrerpolicy="no-referrer" loading="eager" ');
-        // Fix relative URLs to absolute
-        html = html.replace(/src="\/\//g, 'src="https://');
-        html = html.replace(/src="\//g, `src="https://${config.wiki}.fandom.com/`);
+        // Proxy all external images through our API to bypass blocking
+        html = html.replace(/src="(https:\/\/static\.wikia\.nocookie\.net[^"]*)"/g,
+          (_: string, url: string) => `src="/api/img?url=${encodeURIComponent(url)}"`
+        );
         setContent(html);
       }
       setLoading(false);
@@ -53,8 +52,6 @@ export default function WikiArticlePage() {
         </div>
       ) : content ? (
         <div className="card-glass p-6 overflow-hidden">
-          {/* Debug: test if external images load */}
-          <img src="https://static.wikia.nocookie.net/elderscrolls/images/0/0e/Bergritte_Battle-Born.png/revision/latest/scale-to-width-down/268?cb=20121024214858" alt="test" style={{maxWidth: 200, marginBottom: 16, borderRadius: 8}} />
           <div className="wiki-content" dangerouslySetInnerHTML={{ __html: content }} />
           <div className="border-t border-border mt-6 pt-4">
             <p className="text-xs text-text-muted">
