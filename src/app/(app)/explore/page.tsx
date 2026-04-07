@@ -3,6 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { searchGames } from "@/lib/services/igdb";
+
+interface NewsItem {
+  title: string;
+  link: string;
+  image: string | null;
+  source: string;
+  pubDate: string;
+}
 import type { IGDBGame } from "@/lib/services/igdb";
 
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
@@ -21,7 +29,12 @@ export default function ExplorePage() {
   const [results, setResults] = useState<IGDBGame[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [news, setNews] = useState<NewsItem[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    fetch("/api/news").then((r) => r.json()).then(setNews).catch(() => {});
+  }, []);
 
   function handleInput(value: string) {
     setQuery(value);
@@ -103,6 +116,40 @@ export default function ExplorePage() {
               ))}
             </div>
           </div>
+
+          {/* Gaming News */}
+          {news.length > 0 && (
+            <div className="mb-12">
+              <h3 className="text-xl font-bold mb-2">Gaming News</h3>
+              <p className="text-text-secondary text-sm mb-5">Latest from GameSpot, IGN, and Kotaku</p>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {news.map((item, i) => (
+                  <a
+                    key={i}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="card-glass overflow-hidden hover:border-primary/30 transition group"
+                  >
+                    {item.image && (
+                      <img src={item.image} alt="" className="w-full h-40 object-cover" />
+                    )}
+                    <div className="p-4">
+                      <p className="font-semibold text-sm leading-tight group-hover:text-primary transition line-clamp-2">
+                        {item.title}
+                      </p>
+                      <div className="flex items-center justify-between mt-3">
+                        <span className="text-xs text-primary font-medium">{item.source}</span>
+                        <span className="text-xs text-text-muted">
+                          {new Date(item.pubDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
