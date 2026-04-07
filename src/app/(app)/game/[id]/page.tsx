@@ -296,19 +296,21 @@ export default function GameDetailPage() {
       )}
 
       {/* Quick action cards */}
-      {wikiKey && (
+      {(wikiKey || inLibrary) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          <Link href={`/wiki/${wikiKey}`}
-            className="card-glass p-5 flex items-center gap-4 hover:border-primary/30 transition group">
-            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center text-xl shrink-0">📖</div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm group-hover:text-primary transition">Track Progress</p>
-              <p className="text-xs text-text-muted">Wiki checklists</p>
-            </div>
-            <span className="text-primary">→</span>
-          </Link>
+          {wikiKey && (
+            <Link href={`/wiki/${wikiKey}`}
+              className="card-glass p-5 flex items-center gap-4 hover:border-primary/30 transition group">
+              <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center text-xl shrink-0">📖</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm group-hover:text-primary transition">Track Progress</p>
+                <p className="text-xs text-text-muted">Wiki checklists</p>
+              </div>
+              <span className="text-primary">→</span>
+            </Link>
+          )}
 
-          {wikiConfig?.maps && wikiConfig.maps.length > 0 && (
+          {wikiKey && wikiConfig?.maps && wikiConfig.maps.length > 0 && (
             <Link href={`/map/${wikiKey}`}
               className="card-glass p-5 flex items-center gap-4 hover:border-accent/30 transition group">
               <div className="w-11 h-11 rounded-xl bg-accent/15 flex items-center justify-center text-xl shrink-0">🗺️</div>
