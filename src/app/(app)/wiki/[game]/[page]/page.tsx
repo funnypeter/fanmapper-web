@@ -19,12 +19,14 @@ export default function WikiArticlePage() {
     if (!config) return;
     fetchPage(config.wiki, pageTitle).then((data) => {
       if (data?.html) {
-        // Fix Fandom lazy-loaded images: swap data-src to src
         let html = data.html;
+        // Fix Fandom lazy-loaded images: swap data-src to src
         html = html.replace(/\s+src="data:image[^"]*"/g, "");
         html = html.replace(/data-src="/g, 'src="');
         // Remove srcset to prevent broken responsive images
         html = html.replace(/\s+srcset="[^"]*"/g, "");
+        // Add no-referrer to bypass hotlink protection
+        html = html.replace(/<img /g, '<img referrerpolicy="no-referrer" ');
         setContent(html);
       }
       setLoading(false);
