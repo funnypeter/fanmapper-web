@@ -35,13 +35,12 @@ export default function WikiArticlePage() {
       </div>
 
       {loading ? (
-        <p className="text-text-secondary">Loading...</p>
+        <div className="flex justify-center py-20">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
       ) : content ? (
-        <div className="card-glass p-6">
-          <div
-            className="prose prose-invert max-w-none [&_a]:text-primary [&_img]:rounded-lg [&_table]:text-sm"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
+        <div className="card-glass p-6 overflow-hidden">
+          <div className="wiki-content" dangerouslySetInnerHTML={{ __html: content }} />
           <div className="border-t border-border mt-6 pt-4">
             <p className="text-xs text-text-muted">
               Content from {config.wiki}.fandom.com/wiki/{pageTitle} — Licensed under CC BY-SA 3.0
