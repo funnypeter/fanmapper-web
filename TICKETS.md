@@ -23,6 +23,7 @@
 - ✅ Live game search via IGDB API
 
 ### Game Detail
+- ✅ HowLongToBeat times (Main Story, Main + Extras, Completionist)
 - ✅ Hero with cover art, blurred background, rating, genres, platforms
 - ✅ Add to Library button (single tap)
 - ✅ In Library badge with Your Progress section
@@ -44,9 +45,11 @@
 - ✅ Empty state with Explore CTA
 - ✅ Image fallback for broken covers
 
-### Wiki Progress Tracking (10 supported games)
+### Wiki Progress Tracking (16 supported games)
 - ✅ Elden Ring, Skyrim, Fallout 4, Genshin Impact, Zelda TotK
 - ✅ The Witcher 3, GTA V, God of War, Hades, Stardew Valley
+- ✅ Baldur's Gate 3, Cyberpunk 2077, Minecraft, Starfield, Outer Wilds
+- ✅ Cloud-synced checkmarks (Supabase wiki_progress table)
 - ✅ Section tabs with category-specific icons
 - ✅ Live filter search within active section
 - ✅ Recursive subcategory expansion (finds real character/item pages)
@@ -114,9 +117,9 @@
 - Public profile pages
 **Estimate:** L
 
-### FMW-104: HowLongToBeat Integration [P1]
-**Description:** Show estimated completion times on game detail pages.
-**Estimate:** S
+### ✅ FMW-104: HowLongToBeat Integration [DONE]
+### ✅ FMW-107: Add More Wiki Games [DONE — 6 added, 16 total]
+### ✅ FMW-109: Cloud Save Sync [DONE]
 
 ### FMW-105: Game-Specific News [P2]
 **Description:** Filter news to a specific game on its detail page.
@@ -126,16 +129,8 @@
 **Description:** Visual charts for playtime trends, genre breakdown, weekly activity.
 **Estimate:** M
 
-### FMW-107: Add More Wiki Games [P1]
-**Description:** Expand the registry beyond 10 games.
-**Estimate:** S per game
-
 ### FMW-108: Library Bulk Actions [P2]
 **Description:** Select multiple games to bulk-change status, export, or delete.
-**Estimate:** M
-
-### FMW-109: Cloud Save Sync [P2]
-**Description:** Sync wiki checkboxes to Supabase instead of localStorage so progress is shared across devices.
 **Estimate:** M
 
 ### FMW-110: Notifications [P2]
@@ -156,12 +151,14 @@
 
 ---
 
-## Recommended Next Sprint
+## Sprint History
 
-**Sprint 4: Polish & Quality of Life**
+**✅ Sprint 4: Polish & Quality of Life [DONE]**
 - FMW-104: HowLongToBeat times
-- FMW-107: Add 5-10 more games to wiki registry
-- FMW-109: Sync wiki progress to Supabase (cross-device)
+- FMW-107: Added 6 games (now 16 total)
+- FMW-109: Cloud-synced wiki progress
+
+## Upcoming Sprints
 
 **Sprint 5: Platform Expansion**
 - FMW-101: Real PSN trophy import
@@ -170,3 +167,8 @@
 **Sprint 6: Social**
 - FMW-103: Friends & activity feed
 - FMW-110: Notifications
+
+**Sprint 7: Stats & Discovery**
+- FMW-106: Stats dashboard
+- FMW-105: Game-specific news
+- FMW-100: Game wiki auto-detection
