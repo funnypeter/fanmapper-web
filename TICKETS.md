@@ -1,134 +1,172 @@
 # FanMapper Web — Project Tickets
 
-**Priority: P0 (MVP), P1 (V1.0), P2 (V2.0)**
 **Status: ✅ Done | 🔲 Todo**
 
 ---
 
-## What's Built
+## ✅ Built (V1)
 
-- ✅ Landing page with cover art and feature cards
-- ✅ Auth (signup/login with Supabase)
-- ✅ Explore page (game search via IGDB, trending games grid, genre filters)
-- ✅ Game detail page (hero, rating, genres, platforms, Add to Library, Remove)
-- ✅ Game detail — YouTube videos (horizontal scroll from IGDB)
-- ✅ Game detail — Screenshots (horizontal scroll)
-- ✅ Game detail — Track Progress link to wiki (for 10 supported games)
-- ✅ Library page (cover art grid, status badges, playtime, ratings)
-- ✅ Library — status management, star rating, playtime editing
-- ✅ Wiki browser (10 games, category tabs with icons, search, article viewer)
-- ✅ Wiki — progress checkmarks with localStorage persistence + progress bar
-- ✅ Wiki — recursive subcategory expansion for actual page results
-- ✅ Profile page (avatar, stats, linked platforms, sign out)
-- ✅ Bottom nav bar (Explore, Library, Profile)
-- ✅ Supabase schema (profiles, games, user_games, achievements, user_achievements, RLS)
-- ✅ Middleware (public routes for explore/wiki/game, auth-protected for library/profile)
-- ✅ IGDB API proxy (server-side Twitch OAuth, search + detail endpoints)
-- ✅ Game registry with 10 titles (covers, IGDB IDs, wiki configs)
+### Core App
+- ✅ Next.js 16 + TypeScript + Tailwind CSS + Supabase + Vercel
+- ✅ Dark theme with custom design tokens (gaming-inspired palette)
+- ✅ Bottom navigation (Home, Library, Profile) with SVG icons
+- ✅ PWA manifest, app icon, "Add to Home Screen" support
+- ✅ Auth: signup, login, logout (Supabase)
+- ✅ Auth-protected routes via middleware
+- ✅ Public routes: /, /explore, /wiki, /game, /map
+
+### Home (Explore)
+- ✅ Hero search with debounced live filtering
+- ✅ Genre quick-filter chips
+- ✅ Trending Games grid (10 supported titles with cover art)
+- ✅ Gaming News section (GameSpot, IGN, Kotaku RSS feeds)
+- ✅ Live game search via IGDB API
+
+### Game Detail
+- ✅ Hero with cover art, blurred background, rating, genres, platforms
+- ✅ Add to Library button (single tap)
+- ✅ In Library badge with Your Progress section
+- ✅ Status picker (Playing, Completed, Backlog, Wishlist, Dropped)
+- ✅ Star rating (1-5) with hover preview
+- ✅ Playtime editor (hours)
+- ✅ Remove from Library button
+- ✅ Quick action cards: Track Progress (wiki), Interactive Map, Achievements
+- ✅ YouTube videos (horizontal scroll, from IGDB)
+- ✅ Screenshots (horizontal scroll)
+- ✅ Steam reviews (real reviews from Steam API)
+- ✅ User reviews (write/read with star rating)
+- ✅ About/summary section
+
+### Library
+- ✅ Cover art grid with status badges
+- ✅ Filter chips by status (with counts)
+- ✅ Sort: Recent, A-Z, Playtime, Rating
+- ✅ Empty state with Explore CTA
+- ✅ Image fallback for broken covers
+
+### Wiki Progress Tracking (10 supported games)
+- ✅ Elden Ring, Skyrim, Fallout 4, Genshin Impact, Zelda TotK
+- ✅ The Witcher 3, GTA V, God of War, Hades, Stardew Valley
+- ✅ Section tabs with category-specific icons
+- ✅ Live filter search within active section
+- ✅ Recursive subcategory expansion (finds real character/item pages)
+- ✅ Checkboxes with localStorage persistence per game
+- ✅ Progress bar showing checked/total
+- ✅ Wiki article viewer with styled tables, infoboxes, images
+- ✅ Image proxy to bypass Fandom hotlink protection
+
+### Interactive Maps (5 games)
+- ✅ Elden Ring (Fextralife), Skyrim (UESP), Fallout 4 (fo4map.com)
+- ✅ Genshin Impact (HoYoLAB), Zelda TotK (Zelda Dungeon)
+- ✅ Opens in new tab to avoid iframe blocking
+
+### Steam Integration
+- ✅ Sign in with Steam (OpenID, no manual SteamID64 entry)
+- ✅ Profile preview with avatar
+- ✅ Import games + playtime + achievements
+- ✅ Live progress bar during import
+- ✅ Re-sync button
+- ✅ Unlink Steam account
+- ✅ Server-side API key proxy
+- ✅ Status auto-set: playing if recent activity, otherwise backlog
+
+### Achievements
+- ✅ Per-game achievement page with progress bar
+- ✅ Filter: All, Earned, Unearned
+- ✅ Achievement cards with icons, descriptions, earned dates
+- ✅ Global unlock percentage display
+- ✅ Empty state when no achievements imported
+
+### Profile
+- ✅ Avatar (gradient initial)
+- ✅ Stats: Games, Hours Played, Achievements, Completion %
+- ✅ Currently Playing thumbnails
+- ✅ Linked Platforms (Steam connect/re-sync/unlink)
+- ✅ PSN linking page (placeholder, import coming)
+- ✅ Sign Out
 
 ---
 
-## Epic 1: Game Detail & Progress Tracking
+## 🔲 Backlog
 
-### FMW-001: Game Detail Page [P0] ✅
-### FMW-002: Game Detail — Wiki & Map Quick Links [P0] ✅
+### FMW-100: Game Wiki Auto-Detection [P1]
+**Description:** Automatically detect if any game in the user's library has a Fandom wiki, even if not in the registry. Show "Track Progress" link with a generic Fandom search.
+**Estimate:** M
 
----
-
-## Epic 2: Interactive Maps
-
-### FMW-003: Interactive Map Page [P0] 🔲
-**Type:** Story
-**Description:** Leaflet.js interactive map viewer for Fandom game maps.
+### FMW-101: PSN Trophy Import [P1]
+**Description:** Implement actual PSN NPSSO token import (currently placeholder).
 **Acceptance Criteria:**
-- Route: `/map/[game]`
-- Loads Fandom interactive map data via API
-- Renders tile layers and markers using Leaflet.js
-- Marker category filter sidebar (Bosses, Items, Locations, NPCs, etc.)
-- Click marker to see popup with title and description
-- Pan/zoom controls
-- Dark theme styled
-- CC BY-SA attribution
+- Server-side proxy to PSN API
+- Handle NPSSO token securely
+- Import trophy titles + per-game trophies
+- Rate limit appropriately
 **Estimate:** L
 
-### FMW-004: Map Marker Search [P1] 🔲
-**Type:** Story
-**Description:** Search for specific markers/locations on the map.
+### FMW-102: Xbox Integration [P2]
+**Description:** Microsoft OAuth flow for Xbox achievement sync.
+**Estimate:** L
+
+### FMW-103: Friends & Activity Feed [P2]
+**Description:** Follow other users, see their library activity in a feed.
+**Acceptance Criteria:**
+- Search/follow users
+- Activity items: status changes, completions, achievements
+- Public profile pages
+**Estimate:** L
+
+### FMW-104: HowLongToBeat Integration [P1]
+**Description:** Show estimated completion times on game detail pages.
 **Estimate:** S
 
----
-
-## Epic 3: Achievement Tracking
-
-### FMW-005: Achievements Page [P0] 🔲
-**Type:** Story
-**Description:** Per-game achievement list with earned/unearned status and progress bar.
-**Acceptance Criteria:**
-- Route: `/game/[id]/achievements`
-- Overall progress bar (earned / total, percentage)
-- Achievement list: icon, name, description, earned status, date earned
-- Filter: All, Earned, Unearned
+### FMW-105: Game-Specific News [P2]
+**Description:** Filter news to a specific game on its detail page.
 **Estimate:** M
 
-### FMW-006: Achievement Stats on Profile [P1] 🔲
-**Type:** Story
-**Description:** Show aggregate achievement stats on the profile page.
-**Estimate:** S
-
----
-
-## Epic 4: Platform Linking & Import
-
-### FMW-007: Steam Linking Page [P0] 🔲
-**Type:** Story
-**Description:** Link Steam account and import owned games + achievements.
-**Acceptance Criteria:**
-- Route: `/profile/link-steam`
-- User enters SteamID64, preview profile
-- Import owned games, playtime, achievements into Supabase
-- Progress indicator during import
+### FMW-106: Stats Dashboard [P2]
+**Description:** Visual charts for playtime trends, genre breakdown, weekly activity.
 **Estimate:** M
 
-### FMW-008: Steam API Proxy [P0] 🔲
-**Type:** Task
-**Description:** Server-side API routes for Steam Web API (keeps key secret).
-**Estimate:** S
+### FMW-107: Add More Wiki Games [P1]
+**Description:** Expand the registry beyond 10 games.
+**Estimate:** S per game
 
-### FMW-009: PSN Linking Page [P1] 🔲
-**Type:** Story
-**Description:** Link PSN account via NPSSO token and import trophies.
+### FMW-108: Library Bulk Actions [P2]
+**Description:** Select multiple games to bulk-change status, export, or delete.
 **Estimate:** M
 
----
+### FMW-109: Cloud Save Sync [P2]
+**Description:** Sync wiki checkboxes to Supabase instead of localStorage so progress is shared across devices.
+**Estimate:** M
 
-## Epic 5: Library Enhancements
+### FMW-110: Notifications [P2]
+**Description:** Browser push notifications for friend activity, news on tracked games.
+**Estimate:** L
 
-### FMW-010: Library Filter & Sort Controls [P0] 🔲
-**Type:** Story
-**Description:** Add filter chips and sort options to the library page.
-**Acceptance Criteria:**
-- Filter by status: All, Playing, Completed, Backlog, Wishlist, Dropped
-- Sort by: Recently updated, Alphabetical, Playtime
-**Estimate:** S
+### FMW-111: Offline PWA Mode [P2]
+**Description:** Service worker to cache library and wiki pages for offline viewing.
+**Estimate:** M
 
-### FMW-011: Text Reviews [P1] 🔲
-**Type:** Story
-**Description:** Write and display text reviews on game detail pages.
-**Acceptance Criteria:**
-- Review form on game detail (when in library)
-- Reviews stored in Supabase
-- Display reviews on game detail page
+### FMW-112: Game Bundles & Series [P2]
+**Description:** Group related games (e.g., trilogies, DLC).
+**Estimate:** M
+
+### FMW-113: Custom Lists / Tags [P2]
+**Description:** User-created lists beyond the 5 default statuses.
 **Estimate:** M
 
 ---
 
-## Remaining Sprint Plan
+## Recommended Next Sprint
 
-### Sprint 1 (next): Library Polish + Achievements
-FMW-010, FMW-005, FMW-008
+**Sprint 4: Polish & Quality of Life**
+- FMW-104: HowLongToBeat times
+- FMW-107: Add 5-10 more games to wiki registry
+- FMW-109: Sync wiki progress to Supabase (cross-device)
 
-### Sprint 2: Steam Import + Maps
-FMW-007, FMW-003
+**Sprint 5: Platform Expansion**
+- FMW-101: Real PSN trophy import
+- FMW-102: Xbox integration
 
-### Sprint 3: Polish
-FMW-004, FMW-006, FMW-009, FMW-011
+**Sprint 6: Social**
+- FMW-103: Friends & activity feed
+- FMW-110: Notifications
