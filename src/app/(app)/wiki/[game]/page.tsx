@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import { getCategory } from "@/lib/services/fandom";
+import { createClient } from "@/lib/supabase/client";
 
 const SECTION_ICONS: Record<string, string> = {
   characters: "👤", items: "📦", weapons: "⚔️", armor: "🛡️",
@@ -17,6 +18,7 @@ export default function WikiPage() {
   const gameKey = params.game as string;
   const config = GAME_REGISTRY[gameKey];
 
+  const supabase = useMemo(() => createClient(), []);
   const [activeSection, setActiveSection] = useState<string>("characters");
   const [allPages, setAllPages] = useState<{ title: string; pageId: number }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,26 @@ export default function WikiPage() {
     } catch { return new Set(); }
   });
 
-  const toggleChecked = useCallback((pageId: number) => {
+  // Load checked state from Supabase on mount (cross-device sync)
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("wiki_progress")
+        .select("page_id")
+        .eq("user_id", user.id)
+        .eq("game_key", gameKey);
+      if (data && data.length > 0) {
+        const ids = new Set<number>(data.map((r: { page_id: number }) => r.page_id));
+        setChecked(ids);
+        localStorage.setItem(`fanmapper-checked-${gameKey}`, JSON.stringify([...ids]));
+      }
+    })();
+  }, [gameKey, supabase]);
+
+  const toggleChecked = useCallback(async (pageId: number, pageTitle: string) => {
+    const wasChecked = checked.has(pageId);
     setChecked((prev) => {
       const next = new Set(prev);
       if (next.has(pageId)) next.delete(pageId);
@@ -37,7 +58,19 @@ export default function WikiPage() {
       localStorage.setItem(`fanmapper-checked-${gameKey}`, JSON.stringify([...next]));
       return next;
     });
-  }, [gameKey]);
+
+    // Sync to Supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (wasChecked) {
+      await supabase.from("wiki_progress").delete()
+        .eq("user_id", user.id).eq("game_key", gameKey).eq("page_id", pageId);
+    } else {
+      await supabase.from("wiki_progress").upsert({
+        user_id: user.id, game_key: gameKey, page_id: pageId, page_title: pageTitle,
+      }, { onConflict: "user_id,game_key,page_id" });
+    }
+  }, [gameKey, checked, supabase]);
 
   const sections = Object.entries(config?.categories ?? {})
     .filter(([, v]) => !!v)
@@ -158,7 +191,7 @@ export default function WikiPage() {
             return (
               <div key={p.pageId} className={`card-glass flex items-center gap-3 pr-2 transition ${isChecked ? "opacity-60" : ""}`}>
                 <button
-                  onClick={() => toggleChecked(p.pageId)}
+                  onClick={() => toggleChecked(p.pageId, p.title)}
                   className={`shrink-0 w-10 h-full flex items-center justify-center rounded-l-xl transition ${
                     isChecked ? "bg-success/20" : "bg-surface-elevated/50 hover:bg-primary/10"
                   }`}

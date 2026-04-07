@@ -21,6 +21,7 @@ interface GameData {
   screenshots: string[];
   videos: { id: string; name: string }[];
   steamAppId: string | null;
+  timeToBeat: { hastily: number | null; normally: number | null; completely: number | null } | null;
 }
 
 interface UserGameData {
@@ -66,7 +67,7 @@ export default function GameDetailPage() {
           id: dbGame.id, title: dbGame.title, coverUrl: dbGame.cover_url,
           genres: dbGame.genres ?? [], platforms: dbGame.platforms ?? [],
           releaseDate: dbGame.release_date, summary: dbGame.summary,
-          rating: null, ratingCount: 0, screenshots: [], videos: [], steamAppId: null,
+          rating: null, ratingCount: 0, screenshots: [], videos: [], steamAppId: null, timeToBeat: null,
         });
         if (gameId.startsWith("igdb-")) fetchIGDB(gameId);
       } else if (gameId.startsWith("igdb-")) {
@@ -92,6 +93,7 @@ export default function GameDetailPage() {
             rating: data.rating, ratingCount: data.ratingCount ?? 0,
             screenshots: data.screenshots ?? [], videos: data.videos ?? [],
             steamAppId: data.steamAppId ?? null,
+            timeToBeat: data.timeToBeat ?? null,
           });
         }
       } catch {}
@@ -370,6 +372,33 @@ export default function GameDetailPage() {
               <img key={i} src={url} alt={`Screenshot ${i + 1}`}
                 className="shrink-0 h-48 rounded-xl border border-border/50 snap-start object-cover" />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* How Long To Beat */}
+      {game.timeToBeat && (game.timeToBeat.hastily || game.timeToBeat.normally || game.timeToBeat.completely) && (
+        <div className="card-glass p-6 mb-8">
+          <h3 className="text-xl font-bold mb-4">How Long To Beat</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {game.timeToBeat.hastily && (
+              <div className="text-center p-3 rounded-xl bg-surface-elevated/50">
+                <p className="text-2xl font-bold text-accent">{game.timeToBeat.hastily}h</p>
+                <p className="text-xs text-text-muted mt-1">Main Story</p>
+              </div>
+            )}
+            {game.timeToBeat.normally && (
+              <div className="text-center p-3 rounded-xl bg-surface-elevated/50">
+                <p className="text-2xl font-bold text-primary">{game.timeToBeat.normally}h</p>
+                <p className="text-xs text-text-muted mt-1">Main + Extras</p>
+              </div>
+            )}
+            {game.timeToBeat.completely && (
+              <div className="text-center p-3 rounded-xl bg-surface-elevated/50">
+                <p className="text-2xl font-bold text-xp">{game.timeToBeat.completely}h</p>
+                <p className="text-xs text-text-muted mt-1">Completionist</p>
+              </div>
+            )}
           </div>
         </div>
       )}
