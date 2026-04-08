@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface DetectedWiki {
   found: boolean;
@@ -22,23 +23,23 @@ export default function AutoWikiCard({ gameTitle }: { gameTitle: string }) {
 
   if (loading || !data?.found) return null;
 
+  const href = `/wiki/auto-${data.wiki}?title=${encodeURIComponent(gameTitle)}`;
+
   return (
-    <a
-      href={data.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <Link
+      href={href}
       className="card-glass p-5 mb-6 flex items-center gap-4 hover:border-primary/30 transition group"
     >
       <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center text-2xl shrink-0">📖</div>
       <div className="flex-1 min-w-0">
-        <p className="font-semibold group-hover:text-primary transition">Game Wiki</p>
+        <p className="font-semibold group-hover:text-primary transition">Track Progress</p>
         <p className="text-sm text-text-secondary truncate">
           {data.categories && data.categories.length > 0
             ? data.categories.slice(0, 4).join(" · ")
             : `${data.wiki}.fandom.com`}
         </p>
       </div>
-      <span className="text-primary text-lg">↗</span>
-    </a>
+      <span className="text-primary text-lg">→</span>
+    </Link>
   );
 }

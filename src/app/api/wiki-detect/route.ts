@@ -65,6 +65,23 @@ async function getDetectedCategories(wiki: string): Promise<string[]> {
 
 export async function GET(request: NextRequest) {
   const title = request.nextUrl.searchParams.get("title");
+  const explicitWiki = request.nextUrl.searchParams.get("wiki");
+
+  // Explicit wiki: return its categories without re-detecting
+  if (explicitWiki) {
+    const exists = await checkWikiExists(explicitWiki);
+    if (exists) {
+      const categories = await getDetectedCategories(explicitWiki);
+      return NextResponse.json({
+        found: true,
+        wiki: explicitWiki,
+        url: `https://${explicitWiki}.fandom.com`,
+        categories,
+      });
+    }
+    return NextResponse.json({ found: false });
+  }
+
   if (!title) return NextResponse.json({ found: false });
 
   const candidates = generateCandidates(title);

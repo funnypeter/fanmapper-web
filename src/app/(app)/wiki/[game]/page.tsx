@@ -13,10 +13,22 @@ const SECTION_ICONS: Record<string, string> = {
   boons: "✨", fish: "🐟", crops: "🌾", missions: "🎯",
 };
 
+interface DynamicConfig {
+  gameTitle: string;
+  wiki: string;
+  cover?: string;
+  categories: Record<string, string>;
+}
+
 export default function WikiPage() {
   const params = useParams();
   const gameKey = params.game as string;
-  const config = GAME_REGISTRY[gameKey];
+  const isAuto = gameKey.startsWith("auto-");
+
+  const [dynamicConfig, setDynamicConfig] = useState<DynamicConfig | null>(null);
+  const config: DynamicConfig | undefined = isAuto
+    ? (dynamicConfig ?? undefined)
+    : GAME_REGISTRY[gameKey];
 
   const supabase = useMemo(() => createClient(), []);
   const [activeSection, setActiveSection] = useState<string>("characters");
@@ -30,6 +42,30 @@ export default function WikiPage() {
       return saved ? new Set(JSON.parse(saved)) : new Set();
     } catch { return new Set(); }
   });
+
+  // For auto-detected wikis, fetch config dynamically
+  useEffect(() => {
+    if (!isAuto) return;
+    const params = new URLSearchParams(window.location.search);
+    const title = params.get("title") ?? "";
+    const wikiSubdomain = gameKey.replace("auto-", "");
+    fetch(`/api/wiki-detect?title=${encodeURIComponent(title)}&wiki=${wikiSubdomain}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.found) {
+          const cats: Record<string, string> = {};
+          (data.categories ?? []).forEach((c: string) => {
+            const key = c.toLowerCase().replace(/\s+/g, "_");
+            cats[key] = c;
+          });
+          setDynamicConfig({
+            gameTitle: title || wikiSubdomain,
+            wiki: data.wiki,
+            categories: cats,
+          });
+        }
+      });
+  }, [isAuto, gameKey]);
 
   // Load checked state from Supabase on mount (cross-device sync)
   useEffect(() => {
@@ -76,13 +112,22 @@ export default function WikiPage() {
     .filter(([, v]) => !!v)
     .map(([k]) => k);
 
+  // For auto wikis, set initial active section once config loads
+  useEffect(() => {
+    if (config && sections.length > 0 && !sections.includes(activeSection)) {
+      setActiveSection(sections[0]);
+    }
+  }, [config, sections, activeSection]);
+
   useEffect(() => {
     if (!config) return;
+    if (!sections.includes(activeSection)) return;
     loadSection(activeSection);
     setSearchQuery(""); // Clear search on section change
   }, [activeSection, config]);
 
   async function loadSection(section: string) {
+    if (!config) return;
     const cat = (config.categories as Record<string, string | undefined>)[section];
     if (!cat) return;
     setLoading(true);
@@ -103,7 +148,16 @@ export default function WikiPage() {
     return allPages.filter((p) => p.title.toLowerCase().includes(q));
   }, [allPages, searchQuery]);
 
-  if (!config) return <p className="text-text-secondary">Game not found in registry.</p>;
+  if (!config) {
+    if (isAuto) {
+      return (
+        <div className="flex justify-center py-20">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+      );
+    }
+    return <p className="text-text-secondary">Game not found in registry.</p>;
+  }
 
   const coverUrl = config?.cover;
   const sectionIcon = SECTION_ICONS[activeSection] ?? "📄";
