@@ -26,6 +26,11 @@ export default function AchievementCelebration() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setLoading(false); return; }
 
+      // Trigger background Steam sync (server throttles to once per hour)
+      try {
+        await fetch("/api/steam/sync", { method: "POST" });
+      } catch {}
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("last_celebrated_at")
