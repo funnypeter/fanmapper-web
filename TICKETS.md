@@ -88,13 +88,22 @@
 - ✅ PSN linking page (placeholder, import coming)
 - ✅ Sign Out
 
+### Stats Dashboard
+- ✅ Top stats grid: Games, Hours, Completed, Completion %
+- ✅ Status breakdown bars
+- ✅ Top genres bar chart
+- ✅ Most played leaderboard
+- ✅ Highest rated games
+
+### Discovery
+- ✅ Game-specific news (filtered RSS on game detail page)
+- ✅ Auto wiki detection (Fandom wiki lookup for any game)
+
 ---
 
 ## 🔲 Backlog
 
-### FMW-100: Game Wiki Auto-Detection [P1]
-**Description:** Automatically detect if any game in the user's library has a Fandom wiki, even if not in the registry. Show "Track Progress" link with a generic Fandom search.
-**Estimate:** M
+### ✅ FMW-100: Game Wiki Auto-Detection [DONE]
 
 ### FMW-101: PSN Trophy Import [P1]
 **Description:** Implement actual PSN NPSSO token import (currently placeholder).
@@ -121,13 +130,8 @@
 ### ✅ FMW-107: Add More Wiki Games [DONE — 6 added, 16 total]
 ### ✅ FMW-109: Cloud Save Sync [DONE]
 
-### FMW-105: Game-Specific News [P2]
-**Description:** Filter news to a specific game on its detail page.
-**Estimate:** M
-
-### FMW-106: Stats Dashboard [P2]
-**Description:** Visual charts for playtime trends, genre breakdown, weekly activity.
-**Estimate:** M
+### ✅ FMW-105: Game-Specific News [DONE]
+### ✅ FMW-106: Stats Dashboard [DONE]
 
 ### FMW-108: Library Bulk Actions [P2]
 **Description:** Select multiple games to bulk-change status, export, or delete.
@@ -158,6 +162,11 @@
 - FMW-107: Added 6 games (now 16 total)
 - FMW-109: Cloud-synced wiki progress
 
+**✅ Sprint 7: Stats & Discovery [DONE]**
+- FMW-106: Stats dashboard
+- FMW-105: Game-specific news
+- FMW-100: Game wiki auto-detection
+
 ## Upcoming Sprints
 
 **Sprint 5: Platform Expansion**
@@ -168,7 +177,7 @@
 - FMW-103: Friends & activity feed
 - FMW-110: Notifications
 
-**Sprint 7: Stats & Discovery**
-- FMW-106: Stats dashboard
-- FMW-105: Game-specific news
-- FMW-100: Game wiki auto-detection
+**Sprint 8: Power User Features**
+- FMW-108: Library bulk actions
+- FMW-111: Offline PWA mode
+- FMW-113: Custom lists / tags
