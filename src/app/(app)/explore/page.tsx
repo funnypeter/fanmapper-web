@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { searchGames } from "@/lib/services/igdb";
+import AchievementCelebration from "@/components/AchievementCelebration";
 
 interface NewsItem {
   title: string;
@@ -55,6 +56,9 @@ export default function ExplorePage() {
 
   return (
     <div>
+      {/* Achievement celebration */}
+      <AchievementCelebration />
+
       {/* Hero search */}
       <div className="text-center mb-10">
         <h2 className="text-4xl font-bold mb-2">
