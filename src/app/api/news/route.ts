@@ -51,14 +51,29 @@ export async function GET(request: NextRequest) {
   // Filter by game name if provided
   if (game) {
     const lower = game.toLowerCase();
-    // Match if game title appears in news title, with token-level matching for multi-word titles
-    const tokens = lower.split(/\s+/).filter((t) => t.length > 2);
+    const stopWords = new Set(["the", "of", "a", "an", "and", "in", "on"]);
+    // Keep numbers and short words (Sims 4, GTA V) — only filter stop words
+    const tokens = lower
+      .replace(/[^\w\s]/g, "")
+      .split(/\s+/)
+      .filter((t) => t.length >= 1 && !stopWords.has(t));
+
     all = all.filter((item) => {
       const titleLower = item.title.toLowerCase();
+      // Direct substring match
       if (titleLower.includes(lower)) return true;
-      // Match if at least 2 significant tokens appear
-      const matches = tokens.filter((t) => titleLower.includes(t)).length;
-      return tokens.length >= 2 ? matches >= 2 : matches === tokens.length;
+      // Strip stop words from title to compare cleanly
+      const titleStripped = titleLower.replace(/\bthe\b|\bof\b/g, "");
+      if (titleStripped.includes(lower.replace(/\bthe\b|\bof\b/g, ""))) return true;
+      // Multi-word: all significant tokens must appear (whole-word match for each)
+      if (tokens.length >= 2) {
+        return tokens.every((t) => new RegExp(`\\b${t}\\b`, "i").test(titleLower));
+      }
+      // Single token: whole-word match
+      if (tokens.length === 1) {
+        return new RegExp(`\\b${tokens[0]}\\b`, "i").test(titleLower);
+      }
+      return false;
     });
   }
 
