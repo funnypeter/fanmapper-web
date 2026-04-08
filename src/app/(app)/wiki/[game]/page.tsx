@@ -385,7 +385,7 @@ export default function WikiPage() {
                 </button>
 
                 <Link
-                  href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`}
+                  href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}${isAuto && config ? `?title=${encodeURIComponent(config.gameTitle)}` : ""}`}
                   className="flex-1 flex items-center gap-2.5 py-3 group min-w-0"
                 >
                   <span className="text-base shrink-0">{sectionIcon}</span>
@@ -394,7 +394,7 @@ export default function WikiPage() {
                   </span>
                 </Link>
 
-                <Link href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}`} className="text-text-muted text-xs shrink-0 p-1">
+                <Link href={`/wiki/${gameKey}/${encodeURIComponent(p.title)}${isAuto && config ? `?title=${encodeURIComponent(config.gameTitle)}` : ""}`} className="text-text-muted text-xs shrink-0 p-1">
                   →
                 </Link>
               </div>
