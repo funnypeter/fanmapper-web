@@ -42,14 +42,14 @@ async function checkWikiExists(subdomain: string): Promise<boolean> {
 }
 
 async function getDetectedCategories(wiki: string): Promise<string[]> {
-  // Common category names that often exist on game wikis
-  const guesses = ["Characters", "Items", "Weapons", "Locations", "Bosses", "Quests", "Enemies", "Achievements"];
+  // First try common guesses
+  const guesses = ["Characters", "Items", "Weapons", "Locations", "Bosses", "Quests", "Enemies", "Achievements", "Spells", "Skills"];
   const found: string[] = [];
 
   for (const cat of guesses) {
     try {
       const res = await fetch(
-        `https://${wiki}.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:${encodeURIComponent(cat)}&cmlimit=1&format=json&formatversion=2&origin=*`,
+        `https://${wiki}.fandom.com/api.php?action=query&list=categorymembers&cmtitle=Category:${encodeURIComponent(cat)}&cmlimit=1&cmtype=page&format=json&formatversion=2&origin=*`,
         { next: { revalidate: 86400 } }
       );
       if (!res.ok) continue;
@@ -59,6 +59,30 @@ async function getDetectedCategories(wiki: string): Promise<string[]> {
       }
     } catch {}
   }
+
+  if (found.length >= 2) return found;
+
+  // Fall back to wiki's actual top categories sorted by size
+  try {
+    const res = await fetch(
+      `https://${wiki}.fandom.com/api.php?action=query&list=allcategories&aclimit=100&acmin=10&acprop=size&format=json&formatversion=2`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return found;
+    const data = await res.json();
+    const cats = (data.query?.allcategories ?? []) as { category: string; size: number }[];
+
+    const skipPatterns = /^(template|user|file|image|media|admin|stub|community|browse|wiki|category|help|special|article|content|disambig|protect|all\s)/i;
+    const top = cats
+      .filter((c) => !skipPatterns.test(c.category))
+      .sort((a, b) => (b.size ?? 0) - (a.size ?? 0))
+      .slice(0, 6)
+      .map((c) => c.category);
+
+    for (const c of top) {
+      if (!found.includes(c)) found.push(c);
+    }
+  } catch {}
 
   return found;
 }

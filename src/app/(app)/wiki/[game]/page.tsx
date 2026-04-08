@@ -117,6 +117,10 @@ export default function WikiPage() {
     if (config && sections.length > 0 && !sections.includes(activeSection)) {
       setActiveSection(sections[0]);
     }
+    // Stop spinner if config loaded but has no categories
+    if (config && sections.length === 0) {
+      setLoading(false);
+    }
   }, [config, sections, activeSection]);
 
   useEffect(() => {
