@@ -98,6 +98,11 @@
 ### Discovery
 - ✅ Game-specific news (filtered RSS on game detail page)
 - ✅ Auto wiki detection (Fandom wiki lookup for any game)
+- ✅ Auto wikis use the in-app tracking experience (checklists, search, cloud sync)
+- ✅ Smart category detection: tries common names, falls back to wiki's top categories
+- ✅ Junk category filtering (broken links, hidden, cleanup, etc.)
+- ✅ Smart icon mapping (90+ keywords) for auto-detected sections
+- ✅ Article viewer works for both registry and auto wikis
 
 ---
 
