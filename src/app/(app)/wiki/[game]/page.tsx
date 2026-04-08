@@ -7,11 +7,85 @@ import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import { getCategory } from "@/lib/services/fandom";
 import { createClient } from "@/lib/supabase/client";
 
-const SECTION_ICONS: Record<string, string> = {
-  characters: "👤", items: "📦", weapons: "⚔️", armor: "🛡️",
-  locations: "📍", bosses: "💀", quests: "📜", walkthroughs: "🗺️",
-  boons: "✨", fish: "🐟", crops: "🌾", missions: "🎯",
-};
+// Match by keyword anywhere in the section name (case-insensitive)
+const ICON_KEYWORDS: { keyword: string; icon: string }[] = [
+  { keyword: "character", icon: "👤" },
+  { keyword: "npc", icon: "👤" },
+  { keyword: "sim", icon: "👤" },
+  { keyword: "people", icon: "👤" },
+  { keyword: "weapon", icon: "⚔️" },
+  { keyword: "sword", icon: "⚔️" },
+  { keyword: "gun", icon: "🔫" },
+  { keyword: "armor", icon: "🛡️" },
+  { keyword: "armour", icon: "🛡️" },
+  { keyword: "shield", icon: "🛡️" },
+  { keyword: "item", icon: "📦" },
+  { keyword: "object", icon: "📦" },
+  { keyword: "consumable", icon: "🍞" },
+  { keyword: "potion", icon: "🧪" },
+  { keyword: "food", icon: "🍞" },
+  { keyword: "drink", icon: "🍷" },
+  { keyword: "trait", icon: "✨" },
+  { keyword: "skill", icon: "🎯" },
+  { keyword: "ability", icon: "💫" },
+  { keyword: "spell", icon: "🪄" },
+  { keyword: "magic", icon: "🪄" },
+  { keyword: "boon", icon: "✨" },
+  { keyword: "blessing", icon: "✨" },
+  { keyword: "perk", icon: "⭐" },
+  { keyword: "boss", icon: "💀" },
+  { keyword: "enemy", icon: "👹" },
+  { keyword: "monster", icon: "👹" },
+  { keyword: "creature", icon: "🐾" },
+  { keyword: "mob", icon: "👹" },
+  { keyword: "location", icon: "📍" },
+  { keyword: "place", icon: "📍" },
+  { keyword: "region", icon: "🗺️" },
+  { keyword: "biome", icon: "🌳" },
+  { keyword: "city", icon: "🏙️" },
+  { keyword: "town", icon: "🏘️" },
+  { keyword: "dungeon", icon: "🏛️" },
+  { keyword: "quest", icon: "📜" },
+  { keyword: "mission", icon: "🎯" },
+  { keyword: "task", icon: "✅" },
+  { keyword: "story", icon: "📖" },
+  { keyword: "walkthrough", icon: "🗺️" },
+  { keyword: "guide", icon: "📖" },
+  { keyword: "fish", icon: "🐟" },
+  { keyword: "crop", icon: "🌾" },
+  { keyword: "plant", icon: "🌱" },
+  { keyword: "animal", icon: "🐾" },
+  { keyword: "vehicle", icon: "🚗" },
+  { keyword: "ship", icon: "🚀" },
+  { keyword: "build", icon: "🏗️" },
+  { keyword: "house", icon: "🏠" },
+  { keyword: "furniture", icon: "🛋️" },
+  { keyword: "achievement", icon: "🏆" },
+  { keyword: "trophy", icon: "🏆" },
+  { keyword: "aspiration", icon: "⭐" },
+  { keyword: "career", icon: "💼" },
+  { keyword: "job", icon: "💼" },
+  { keyword: "event", icon: "🎉" },
+  { keyword: "music", icon: "🎵" },
+  { keyword: "song", icon: "🎵" },
+  { keyword: "outfit", icon: "👕" },
+  { keyword: "clothes", icon: "👕" },
+  { keyword: "fashion", icon: "👗" },
+];
+
+function iconForSection(section: string): string {
+  const lower = section.toLowerCase();
+  for (const { keyword, icon } of ICON_KEYWORDS) {
+    if (lower.includes(keyword)) return icon;
+  }
+  return "📄";
+}
+
+function formatSectionLabel(section: string): string {
+  return section
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 interface DynamicConfig {
   gameTitle: string;
@@ -164,7 +238,7 @@ export default function WikiPage() {
   }
 
   const coverUrl = config?.cover;
-  const sectionIcon = SECTION_ICONS[activeSection] ?? "📄";
+  const sectionIcon = iconForSection(activeSection);
 
   return (
     <div>
@@ -191,7 +265,7 @@ export default function WikiPage() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={`Filter ${activeSection}...`}
+          placeholder={`Filter ${formatSectionLabel(activeSection)}...`}
           className="w-full rounded-xl bg-surface border border-border px-5 py-3 text-foreground placeholder:text-text-muted focus:outline-none focus:border-primary/50 transition"
         />
         {searchQuery && (
@@ -216,8 +290,8 @@ export default function WikiPage() {
                 : "bg-surface border-border text-text-secondary hover:text-foreground hover:border-text-muted"
             }`}
           >
-            <span>{SECTION_ICONS[s] ?? "📄"}</span>
-            {s.charAt(0).toUpperCase() + s.slice(1)}
+            <span>{iconForSection(s)}</span>
+            {formatSectionLabel(s)}
           </button>
         ))}
       </div>
@@ -283,7 +357,7 @@ export default function WikiPage() {
       ) : (
         <div className="text-center py-16">
           <p className="text-text-secondary">
-            {searchQuery ? `No ${activeSection} match "${searchQuery}"` : `No ${activeSection} found`}
+            {searchQuery ? `No ${formatSectionLabel(activeSection)} match "${searchQuery}"` : `No ${formatSectionLabel(activeSection)} found`}
           </p>
         </div>
       )}

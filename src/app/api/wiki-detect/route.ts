@@ -72,7 +72,7 @@ async function getDetectedCategories(wiki: string): Promise<string[]> {
     const data = await res.json();
     const cats = (data.query?.allcategories ?? []) as { category: string; size: number }[];
 
-    const skipPatterns = /^(template|user|file|image|media|admin|stub|community|browse|wiki|category|help|special|article|content|disambig|protect|all\s)/i;
+    const skipPatterns = /^(template|user|file|image|media|admin|stub|community|browse|wiki|category|help|special|article|content|disambig|protect|all\s|pages?[\s_]with|broken|missing|needs|unused|orphaned|cleanup|deletion|maintenance|hidden)/i;
     const top = cats
       .filter((c) => !skipPatterns.test(c.category))
       .sort((a, b) => (b.size ?? 0) - (a.size ?? 0))
