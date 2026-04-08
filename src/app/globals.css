@@ -64,6 +64,13 @@ body {
 
 .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 8px); }
 
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Wiki content styling */
 .wiki-content {
   color: var(--foreground);

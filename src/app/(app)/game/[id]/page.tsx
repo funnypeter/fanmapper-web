@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { findWikiConfig, findWikiConfigByIgdbId, GAME_REGISTRY } from "@/lib/services/gameRegistry";
 import ReviewSection from "@/components/ReviewSection";
 import SteamReviews from "@/components/SteamReviews";
+import GameNews from "@/components/GameNews";
+import AutoWikiCard from "@/components/AutoWikiCard";
 
 interface GameData {
   id: string;
@@ -297,6 +299,9 @@ export default function GameDetailPage() {
         </div>
       )}
 
+      {/* Auto-detected wiki for unsupported games */}
+      {!wikiKey && <AutoWikiCard gameTitle={game.title} />}
+
       {/* Quick action cards */}
       {(wikiKey || inLibrary) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
@@ -410,6 +415,9 @@ export default function GameDetailPage() {
           <p className="text-text-secondary leading-relaxed">{game.summary}</p>
         </div>
       )}
+
+      {/* Game News */}
+      <GameNews gameTitle={game.title} />
 
       {/* Steam Reviews */}
       {(game.steamAppId || gameId.startsWith("steam-")) && (
