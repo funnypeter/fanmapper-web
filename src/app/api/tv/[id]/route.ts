@@ -16,13 +16,23 @@ export async function GET(
   if (!apiKey) return NextResponse.json({ error: "TMDB_API_KEY not configured" }, { status: 500 });
 
   try {
-    // Fetch show details with credits appended
+    // Fetch show details with credits + recommendations appended
     const detailRes = await fetch(
-      `${TMDB_BASE}/tv/${tmdbId}?api_key=${apiKey}&language=en-US&append_to_response=credits`
+      `${TMDB_BASE}/tv/${tmdbId}?api_key=${apiKey}&language=en-US&append_to_response=credits,recommendations`
     );
 
     if (!detailRes.ok) return NextResponse.json({ error: "Show not found" }, { status: 404 });
     const show = await detailRes.json();
+
+    // Parse recommendations — TMDB returns shows watched/liked by similar audiences
+    const recommendations = (show.recommendations?.results ?? [])
+      .slice(0, 8)
+      .map((r: any) => ({
+        id: `tmdb-${r.id}`,
+        title: r.name,
+        posterUrl: r.poster_path ? `${IMG_BASE}${r.poster_path}` : null,
+        year: r.first_air_date?.substring(0, 4) || null,
+      }));
 
     // Parse cast from credits
     const cast = (show.credits?.cast ?? [])
@@ -87,6 +97,7 @@ export async function GET(
       status: show.status || null,
       cast,
       seasons,
+      recommendations,
     });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

@@ -28,7 +28,7 @@ const STATUSES = [
 export default function TVShowDetailContent({ showId }: { showId: string }) {
   const router = useRouter();
   const supabase = createClient();
-  const { openWikiArticle, openBriefing } = useTVShowModal();
+  const { openWikiArticle, openBriefing, openShow } = useTVShowModal();
 
   const [show, setShow] = useState<TVDBShowDetail | null>(null);
   const [userShow, setUserShow] = useState<UserShowData | null>(null);
@@ -318,6 +318,38 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                 )}
                 <p className={`text-xs font-semibold mt-2 truncate ${wikiSubdomain ? "group-hover:text-primary transition" : ""}`}>{member.name}</p>
                 <p className="text-[10px] text-text-muted truncate">{member.characterName}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* You Might Like */}
+      {show.recommendations && show.recommendations.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-xl font-bold mb-4">You Might Like</h3>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+            {show.recommendations.map((rec) => (
+              <button
+                key={rec.id}
+                onClick={() => openShow(rec.id)}
+                className="flex-shrink-0 w-[120px] text-left group"
+              >
+                {rec.posterUrl ? (
+                  <img
+                    src={rec.posterUrl}
+                    alt={rec.title}
+                    className="w-[120px] h-[180px] rounded-xl object-cover border border-border/50 group-hover:border-primary transition"
+                  />
+                ) : (
+                  <div className="w-[120px] h-[180px] rounded-xl bg-surface-elevated flex items-center justify-center text-3xl border border-border/50 group-hover:border-primary transition">
+                    📺
+                  </div>
+                )}
+                <p className="text-xs font-semibold mt-2 line-clamp-2 group-hover:text-primary transition">
+                  {rec.title}
+                </p>
+                {rec.year && <p className="text-[10px] text-text-muted">{rec.year}</p>}
               </button>
             ))}
           </div>

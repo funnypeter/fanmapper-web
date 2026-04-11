@@ -15,6 +15,7 @@ export interface TVDBShowDetail extends TVDBShow {
   status: string | null;
   cast: { name: string; characterName: string; image: string | null }[];
   seasons: { seasonNumber: number; episodes: TVDBEpisode[] }[];
+  recommendations: { id: string; title: string; posterUrl: string | null; year: string | null }[];
 }
 
 export interface TVDBEpisode {
