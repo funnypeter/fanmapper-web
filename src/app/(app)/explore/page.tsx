@@ -246,11 +246,13 @@ function GameCard({ id, title, cover, genre, year }: { id: string; title: string
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="font-semibold text-sm leading-tight text-white">{title}</p>
-        <p className="text-xs text-white/60 mt-0.5">
-          {year}{genre ? ` · ${genre}` : ""}
-        </p>
+      <div className="absolute bottom-0 left-0 right-0 p-2.5">
+        <p className="font-semibold text-xs leading-tight text-white">{title}</p>
+        {(year || genre) && (
+          <p className="text-[10px] text-white/50 mt-0.5 truncate">
+            {year}{genre ? ` · ${genre}` : ""}
+          </p>
+        )}
       </div>
     </Link>
   );
