@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { searchShows } from "@/lib/services/tvdb";
 import type { TVDBShow } from "@/lib/services/tvdb";
 import TVTrendingChats from "@/components/TVTrendingChats";
+import TVPollCarousel from "@/components/TVPollCarousel";
 import { useTVShowModal } from "@/components/TVShowModalContext";
 
 interface MetacriticItem {
@@ -91,6 +92,9 @@ export default function TVDiscoverPage() {
       {/* Trending content */}
       {!searched && (
         <>
+          {/* TV Polls */}
+          <TVPollCarousel />
+
           {/* Trending Chats */}
           <TVTrendingChats />
 

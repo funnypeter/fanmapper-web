@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { findTVWikiConfigByTmdbId } from "@/lib/services/tvRegistry";
 import type { TVDBShowDetail, TVDBEpisode } from "@/lib/services/tvdb";
+import TVGuideArticles from "@/components/TVGuideArticles";
 
 interface UserShowData {
   status: string;
@@ -344,6 +345,9 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
           </div>
         </div>
       )}
+
+      {/* TVGuide Articles */}
+      <TVGuideArticles showTitle={show.title} />
 
       {/* About */}
       {show.summary && (

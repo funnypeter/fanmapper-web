@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { generatePolls } from "@/lib/services/pollGenerator";
+import { generateTVPolls } from "@/lib/services/tvPollGenerator";
 
 async function fetchActivePolls(supabase: Awaited<ReturnType<typeof createClient>>, userId: string | null) {
   const { data: polls } = await supabase
     .from("polls")
     .select("*")
-    .eq("category", "gaming")
+    .eq("category", "tv")
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(4);
@@ -49,12 +49,10 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id ?? null;
 
-    // Try to fetch active polls
     let polls = await fetchActivePolls(supabase, userId);
 
-    // Auto-generate if none exist
     if (polls.length === 0) {
-      const { success, error: genError } = await generatePolls();
+      const { success, error: genError } = await generateTVPolls();
       if (success) {
         polls = await fetchActivePolls(supabase, userId);
       } else if (genError) {
