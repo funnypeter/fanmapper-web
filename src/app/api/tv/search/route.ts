@@ -34,7 +34,10 @@ export async function GET(request: NextRequest) {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!res.ok) return NextResponse.json([]);
+    if (!res.ok) {
+      const errText = await res.text();
+      return NextResponse.json({ error: `TVDB ${res.status}: ${errText.substring(0, 200)}` });
+    }
     const data = await res.json();
     const results = data.data ?? [];
 
@@ -51,7 +54,7 @@ export async function GET(request: NextRequest) {
         year: r.year || null,
       }))
     );
-  } catch {
-    return NextResponse.json([]);
+  } catch (err) {
+    return NextResponse.json({ error: String(err) });
   }
 }

@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { searchShows } from "@/lib/services/tvdb";
 import type { TVDBShow } from "@/lib/services/tvdb";
-import { TRENDING_SHOWS } from "@/lib/services/tvRegistry";
 import TVTrendingChats from "@/components/TVTrendingChats";
 import { useTVShowModal } from "@/components/TVShowModalContext";
 
@@ -20,11 +19,15 @@ export default function TVDiscoverPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [metacritic, setMetacritic] = useState<MetacriticItem[]>([]);
+  const [trendingShows, setTrendingShows] = useState<{ id: string; title: string; posterUrl: string | null; genre: string | null; year: string | null }[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch("/api/tv/metacritic").then((r) => r.json()).then((data) => {
       if (Array.isArray(data)) setMetacritic(data);
+    }).catch(() => {});
+    fetch("/api/tv/trending").then((r) => r.json()).then((data) => {
+      if (Array.isArray(data)) setTrendingShows(data);
     }).catch(() => {});
   }, []);
 
@@ -92,17 +95,19 @@ export default function TVDiscoverPage() {
           <TVTrendingChats />
 
           {/* Trending Shows */}
-          <div className="mb-12">
-            <h3 className="text-xl font-bold mb-2">Trending Shows</h3>
-            <p className="text-text-secondary text-sm mb-5">Popular titles to track and explore</p>
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
-              {TRENDING_SHOWS.map((show) => (
-                <div key={show.id} className="flex-shrink-0 w-[160px]">
-                  <ShowCard id={show.id} title={show.title} poster={show.poster} genre={show.genre} />
-                </div>
-              ))}
+          {trendingShows.length > 0 && (
+            <div className="mb-12">
+              <h3 className="text-xl font-bold mb-2">Trending Shows</h3>
+              <p className="text-text-secondary text-sm mb-5">Popular titles to track and explore</p>
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                {trendingShows.map((show) => (
+                  <div key={show.id} className="flex-shrink-0 w-[160px]">
+                    <ShowCard id={show.id} title={show.title} poster={show.posterUrl} genre={show.genre} />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Trending on Metacritic */}
           {metacritic.length > 0 && (
@@ -147,7 +152,7 @@ export default function TVDiscoverPage() {
   );
 }
 
-function ShowCard({ id, title, poster, genre, year }: { id: string; title: string; poster: string | null; genre?: string; year?: string | null }) {
+function ShowCard({ id, title, poster, genre, year }: { id: string; title: string; poster: string | null; genre?: string | null; year?: string | null }) {
   const { openShow } = useTVShowModal();
 
   return (
