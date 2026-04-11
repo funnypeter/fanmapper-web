@@ -56,11 +56,14 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
       setUser(u);
 
       const res = await fetch(`/api/tv/${showId}`);
+      let showData = null;
       if (res.ok) {
-        const data = await res.json();
-        setShow(data);
-        if (data.seasons?.[0]) setExpandedSeason(data.seasons[0].seasonNumber);
+        showData = await res.json();
+        setShow(showData);
       }
+
+      // Collect all checked episodes from Supabase + localStorage
+      const allChecked = new Set<string>();
 
       if (u) {
         const { data: us } = await supabase.from("user_shows").select("*").eq("user_id", u.id).eq("show_id", showId).single();
@@ -68,14 +71,32 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
 
         const wikiKey = registryMatch?.key ?? showId;
         const { data: progress } = await supabase.from("tv_wiki_progress").select("page_id").eq("user_id", u.id).eq("show_key", wikiKey);
-        if (progress) setCheckedEpisodes(new Set(progress.map((p) => p.page_id)));
+        if (progress) progress.forEach((p) => allChecked.add(p.page_id));
       }
 
       const wikiKey = registryMatch?.key ?? showId;
       const local = localStorage.getItem(`tv-progress-${wikiKey}`);
       if (local) {
-        const localSet = new Set<string>(JSON.parse(local));
-        setCheckedEpisodes((prev) => new Set([...prev, ...localSet]));
+        JSON.parse(local).forEach((id: string) => allChecked.add(id));
+      }
+
+      setCheckedEpisodes(allChecked);
+
+      // Expand the latest season that has checked episodes, or the last season
+      if (showData?.seasons?.length > 0) {
+        let latestCheckedSeason: number | null = null;
+        for (const ep of allChecked) {
+          const match = ep.match(/^s(\d+)e/);
+          if (match) {
+            const sn = parseInt(match[1]);
+            if (latestCheckedSeason === null || sn > latestCheckedSeason) {
+              latestCheckedSeason = sn;
+            }
+          }
+        }
+        setExpandedSeason(
+          latestCheckedSeason ?? showData.seasons[showData.seasons.length - 1].seasonNumber
+        );
       }
 
       setLoading(false);
