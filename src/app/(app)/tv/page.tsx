@@ -14,6 +14,14 @@ interface MetacriticItem {
   link: string;
 }
 
+interface NewsItem {
+  title: string;
+  link: string;
+  image: string | null;
+  source: string;
+  pubDate: string;
+}
+
 export default function TVDiscoverPage() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TVDBShow[]>([]);
@@ -21,6 +29,7 @@ export default function TVDiscoverPage() {
   const [searched, setSearched] = useState(false);
   const [metacritic, setMetacritic] = useState<MetacriticItem[]>([]);
   const [trendingShows, setTrendingShows] = useState<{ id: string; title: string; posterUrl: string | null; genre: string | null; year: string | null }[]>([]);
+  const [tvguide, setTvguide] = useState<NewsItem[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -29,6 +38,9 @@ export default function TVDiscoverPage() {
     }).catch(() => {});
     fetch("/api/tv/trending").then((r) => r.json()).then((data) => {
       if (Array.isArray(data)) setTrendingShows(data);
+    }).catch(() => {});
+    fetch("/api/tv/tvguide?show=trending TV").then((r) => r.json()).then((data) => {
+      if (Array.isArray(data)) setTvguide(data);
     }).catch(() => {});
   }, []);
 
@@ -144,6 +156,37 @@ export default function TVDiscoverPage() {
                           }`}>{item.score}</span>
                         </div>
                       )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          {/* Trending on TVGuide */}
+          {tvguide.length > 0 && (
+            <div className="mb-12">
+              <div className="flex items-center gap-2.5 mb-5">
+                <span className="text-lg font-bold text-text-secondary">Trending on</span>
+                <svg viewBox="0 0 100 24" className="h-5" fill="none">
+                  <rect width="24" height="24" rx="4" fill="#00A8E1" />
+                  <text x="12" y="17" textAnchor="middle" fill="#fff" fontSize="14" fontWeight="bold">TV</text>
+                  <text x="36" y="18" fill="#00A8E1" fontSize="14" fontWeight="bold">Guide</text>
+                </svg>
+              </div>
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                {tvguide.map((item, i) => (
+                  <a key={i} href={item.link} target="_blank" rel="noopener noreferrer"
+                    className="flex-shrink-0 w-[220px] card-glass overflow-hidden hover:border-primary/30 transition group">
+                    {item.image ? (
+                      <img src={item.image} alt="" className="w-full h-44 object-cover" />
+                    ) : (
+                      <div className="w-full h-44 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">📺</div>
+                    )}
+                    <div className="p-3">
+                      <p className="font-semibold text-xs leading-tight group-hover:text-primary transition line-clamp-2">{item.title}</p>
+                      <span className="text-[10px] text-text-muted mt-2 block">
+                        {new Date(item.pubDate).toLocaleDateString()}
+                      </span>
                     </div>
                   </a>
                 ))}
