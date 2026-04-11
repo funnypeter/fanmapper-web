@@ -30,6 +30,7 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 - `src/app/(app)/wiki/[game]/page.tsx` — Wiki checklist UI. Handles BOTH registry games and `auto-{wiki}` keys. Has 90+ icon keyword mappings.
 - `src/app/(app)/wiki/[game]/[page]/page.tsx` — Article viewer with proxied images. Also handles auto wikis.
 - `src/app/(app)/stats/page.tsx` — Server-rendered stats dashboard with status/genre breakdowns
+- `src/components/PollCarousel.tsx` — **Reusable widget**. Self-contained poll carousel (fetches own data, manages state). Drop `<PollCarousel />` anywhere to add community polls. Backed by `PollCard.tsx`, `PollModal.tsx`, and `src/lib/services/pollGenerator.ts`.
 - `src/middleware.ts` — Auth-protected route logic
 - `supabase/migrations/` — SQL migrations (run manually in Supabase SQL Editor; not auto-applied)
 
