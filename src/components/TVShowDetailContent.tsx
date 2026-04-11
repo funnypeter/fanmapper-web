@@ -259,15 +259,19 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
           <h3 className="text-xl font-bold mb-4">Cast</h3>
           <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
             {show.cast.map((member, i) => (
-              <div key={i} className="flex-shrink-0 w-[100px] text-center">
+              <button
+                key={i}
+                onClick={() => wikiKey && openEpisodeWiki(member.characterName)}
+                className={`flex-shrink-0 w-[100px] text-center ${wikiKey ? "cursor-pointer group" : ""}`}
+              >
                 {member.image ? (
-                  <img src={member.image} alt={member.name} className="w-20 h-20 rounded-full object-cover mx-auto border-2 border-border/50" />
+                  <img src={member.image} alt={member.name} className={`w-20 h-20 rounded-full object-cover mx-auto border-2 border-border/50 ${wikiKey ? "group-hover:border-primary transition" : ""}`} />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center text-text-muted text-2xl mx-auto">👤</div>
+                  <div className={`w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center text-text-muted text-2xl mx-auto ${wikiKey ? "group-hover:border-primary border-2 border-transparent transition" : ""}`}>👤</div>
                 )}
-                <p className="text-xs font-semibold mt-2 truncate">{member.name}</p>
+                <p className={`text-xs font-semibold mt-2 truncate ${wikiKey ? "group-hover:text-primary transition" : ""}`}>{member.name}</p>
                 <p className="text-[10px] text-text-muted truncate">{member.characterName}</p>
-              </div>
+              </button>
             ))}
           </div>
         </div>
