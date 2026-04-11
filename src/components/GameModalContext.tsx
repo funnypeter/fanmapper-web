@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import GameDetailContent from "./GameDetailContent";
 
 interface GameModalContextType {
@@ -23,12 +23,24 @@ export function GameModalProvider({ children }: { children: React.ReactNode }) {
   const openGame = useCallback((gameId: string) => {
     setActiveGameId(gameId);
     document.body.style.overflow = "hidden";
+    window.history.pushState({ gameModal: true }, "");
   }, []);
 
   const closeGame = useCallback(() => {
     setActiveGameId(null);
     document.body.style.overflow = "";
   }, []);
+
+  useEffect(() => {
+    function handlePopState() {
+      if (activeGameId) {
+        setActiveGameId(null);
+        document.body.style.overflow = "";
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [activeGameId]);
 
   return (
     <GameModalContext.Provider value={{ openGame, closeGame }}>

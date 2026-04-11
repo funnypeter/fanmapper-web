@@ -245,18 +245,11 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
         </div>
       )}
 
-      {/* Track Progress card */}
-      {wikiKey && (
-        <div className="mb-6">
-          <Link href={`/tv/wiki/${wikiKey}`}
-            className="card-glass p-5 flex items-center gap-4 hover:border-primary/30 transition group">
-            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center text-xl shrink-0">📖</div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm group-hover:text-primary transition">Track Progress</p>
-              <p className="text-xs text-text-muted">Wiki checklists</p>
-            </div>
-            <span className="text-primary">→</span>
-          </Link>
+      {/* About */}
+      {show.summary && (
+        <div className="card-glass p-6 mb-6">
+          <h3 className="text-xl font-bold mb-3">About</h3>
+          <p className="text-text-secondary leading-relaxed">{show.summary}</p>
         </div>
       )}
 
@@ -366,14 +359,6 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
 
       {/* TVGuide Articles */}
       <TVGuideArticles showTitle={show.title} />
-
-      {/* About */}
-      {show.summary && (
-        <div className="card-glass p-6 mb-8">
-          <h3 className="text-xl font-bold mb-3">About</h3>
-          <p className="text-text-secondary leading-relaxed">{show.summary}</p>
-        </div>
-      )}
     </div>
   );
 }

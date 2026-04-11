@@ -78,6 +78,7 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
     setActiveShowId(showId);
     setWikiArticle(null);
     document.body.style.overflow = "hidden";
+    window.history.pushState({ tvModal: "show" }, "");
   }, []);
 
   const closeShow = useCallback(() => {
@@ -88,7 +89,22 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
 
   const openEpisodeWiki = useCallback((episodeTitle: string) => {
     setWikiArticle(episodeTitle);
+    window.history.pushState({ tvModal: "wiki" }, "");
   }, []);
+
+  // Handle Android back button / browser back
+  useEffect(() => {
+    function handlePopState() {
+      if (wikiArticle) {
+        setWikiArticle(null);
+      } else if (activeShowId) {
+        setActiveShowId(null);
+        document.body.style.overflow = "";
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [activeShowId, wikiArticle]);
 
   const registryMatch = activeShowId ? findTVWikiConfigByTmdbId(activeShowId) : null;
   const wikiSubdomain = registryMatch?.config.wiki ?? null;
