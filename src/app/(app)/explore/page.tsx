@@ -117,9 +117,11 @@ export default function ExplorePage() {
           <div className="mb-12">
             <h3 className="text-xl font-bold mb-2">Trending Games</h3>
             <p className="text-text-secondary text-sm mb-5">Popular titles to track and explore</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
               {TRENDING_GAMES.map((game) => (
-                <GameCard key={game.id} id={game.id} title={game.title} cover={game.cover} genre={game.genre} />
+                <div key={game.id} className="flex-shrink-0 w-[160px]">
+                  <GameCard id={game.id} title={game.title} cover={game.cover} genre={game.genre} />
+                </div>
               ))}
             </div>
           </div>
