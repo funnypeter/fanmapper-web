@@ -11,12 +11,12 @@ function decodeHtml(html: string): string {
   return html.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&#x27;/g, "'");
 }
 
-async function fetchGameSpotRSS(): Promise<NewsItem[]> {
+async function fetchFeed(url: string): Promise<NewsItem[]> {
   try {
-    const res = await fetch("https://www.gamespot.com/feeds/mashup/", { next: { revalidate: 1800 } });
+    const res = await fetch(url, { next: { revalidate: 1800 } });
     if (!res.ok) return [];
     const xml = await res.text();
-    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 40);
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
 
     return items.map((match) => {
       const content = match[1];
@@ -38,13 +38,30 @@ export async function GET(request: NextRequest) {
   if (!gameTitle) return NextResponse.json([]);
 
   const geminiKey = process.env.GEMINI_API_KEY;
-  const articles = await fetchGameSpotRSS();
-  if (articles.length === 0) return NextResponse.json({ debug: "RSS fetch returned 0 articles" });
-
   if (!geminiKey) return NextResponse.json({ debug: "GEMINI_API_KEY not set" });
 
+  // Fetch from multiple GameSpot feeds for a bigger pool
+  const feeds = await Promise.all([
+    fetchFeed("https://www.gamespot.com/feeds/mashup/"),
+    fetchFeed("https://www.gamespot.com/feeds/game-news/"),
+    fetchFeed("https://www.gamespot.com/feeds/reviews/"),
+  ]);
+
+  // Deduplicate by link
+  const seen = new Set<string>();
+  const articles: NewsItem[] = [];
+  for (const feed of feeds) {
+    for (const item of feed) {
+      if (!seen.has(item.link)) {
+        seen.add(item.link);
+        articles.push(item);
+      }
+    }
+  }
+
+  if (articles.length === 0) return NextResponse.json({ debug: "All RSS feeds returned 0 articles" });
+
   try {
-    // Give Gemini the real article titles and ask it to pick the relevant ones
     const titleList = articles.map((a, i) => `${i}: ${a.title}`).join("\n");
 
     const res = await fetch(
@@ -55,10 +72,10 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Here are today's GameSpot articles:\n\n${titleList}\n\nWhich of these articles would someone interested in the game "${gameTitle}" want to read? Pick up to 5 that are most relevant — they can be about this game, its franchise, genre, developer, or similar games.\n\nReturn ONLY a JSON array of the index numbers, no other text. Example: [0, 3, 7, 12, 15]`,
+              text: `Here are recent GameSpot articles:\n\n${titleList}\n\nI am interested in the game "${gameTitle}". Pick up to 5 articles I would want to read. Be generous — include articles about:\n- This exact game\n- The same franchise or series\n- The same developer or publisher\n- Games in the same genre\n- Gaming industry news that affects this type of game\n- Similar or competing games\n\nIf fewer than 5 are even loosely related, return only those. If none are related, return an empty array.\n\nReturn ONLY a JSON array of index numbers, no other text. Example: [0, 3, 7]`,
             }],
           }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 256 },
+          generationConfig: { temperature: 0.5, maxOutputTokens: 256 },
         }),
       }
     );
