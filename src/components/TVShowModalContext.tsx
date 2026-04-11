@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import TVShowDetailContent from "./TVShowDetailContent";
 import { searchAndFetchPage } from "@/lib/services/fandom";
 
@@ -71,6 +71,8 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
 export function TVShowModalProvider({ children }: { children: React.ReactNode }) {
   const [activeShowId, setActiveShowId] = useState<string | null>(null);
   const [wikiView, setWikiView] = useState<{ wiki: string; page: string } | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const savedScrollPos = useRef(0);
 
   const openShow = useCallback((showId: string) => {
     setActiveShowId(showId);
@@ -86,6 +88,7 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const openWikiArticle = useCallback((wikiSubdomain: string, pageTitle: string) => {
+    savedScrollPos.current = scrollRef.current?.scrollTop ?? 0;
     setWikiView({ wiki: wikiSubdomain, page: pageTitle });
     window.history.pushState({ tvModal: "wiki" }, "");
   }, []);
@@ -94,6 +97,9 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
     function handlePopState() {
       if (wikiView) {
         setWikiView(null);
+        requestAnimationFrame(() => {
+          if (scrollRef.current) scrollRef.current.scrollTop = savedScrollPos.current;
+        });
       } else if (activeShowId) {
         setActiveShowId(null);
         document.body.style.overflow = "";
@@ -125,12 +131,17 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
               {wikiView ? (
                 <WikiArticleView
                   wiki={wikiView.wiki}
                   pageTitle={wikiView.page}
-                  onBack={() => setWikiView(null)}
+                  onBack={() => {
+                    setWikiView(null);
+                    requestAnimationFrame(() => {
+                      if (scrollRef.current) scrollRef.current.scrollTop = savedScrollPos.current;
+                    });
+                  }}
                 />
               ) : (
                 <TVShowDetailContent showId={activeShowId} />
