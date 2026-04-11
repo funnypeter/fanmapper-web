@@ -19,6 +19,7 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 - **Wiki keys are prefixed too**: `auto-{wiki}` for auto-detected wikis (e.g. `auto-thesims4`); plain keys (`elden-ring`, `skyrim`) for the 16 hand-curated registry entries
 - **Wiki progress dual-stored**: localStorage (instant) + Supabase wiki_progress table (cross-device sync)
 - **Two-level navigation**: Bottom nav (Home, TV, Games, Collections, Profile) for main sections; top tabs (Discover, Library, Stats) for sub-navigation within Games
+- **Game detail opens in modal**: Clicking a game card opens `GameDetailContent` in a scrollable modal via `GameModalContext`. Direct URL `/game/[id]` still works as full page fallback. To make other game links open in the modal, use `useGameModal().openGame(id)` instead of `<Link>`.
 - **Routes are public by default**: Only `/library`, `/profile`, `/profile/*`, `/stats` require auth via middleware
 
 ## Critical Files
@@ -34,10 +35,14 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 - `src/components/PollCarousel.tsx` — **Reusable widget**. Self-contained poll carousel (fetches own data, manages state). Drop `<PollCarousel />` anywhere to add community polls. Backed by `PollCard.tsx`, `PollModal.tsx`, and `src/lib/services/pollGenerator.ts`.
 - `src/components/GameChat.tsx` — **Reusable widget**. Live chat card for game detail pages. Shows animated chat preview, expands to full modal. Has demo content for all 15 registry games + generic fallback. Usage: `<GameChat gameTitle={title} />`
 - `src/components/TrendingChats.tsx` — **Reusable widget**. Horizontal scroll of animated live chat rooms for the Explore page. Usage: `<TrendingChats />`
+- `src/components/GameDetailContent.tsx` — Shared game detail UI (hero, library actions, chat, videos, reviews). Used by both the modal and the `/game/[id]` page.
+- `src/components/GameModalContext.tsx` — Context provider for game detail modal. Wrap with `<GameModalProvider>`, open with `useGameModal().openGame(id)`.
+- `src/components/GameSpotArticles.tsx` — **Reusable widget**. GameSpot articles relevant to a game (Gemini picks from real RSS feed). Usage: `<GameSpotArticles gameTitle={title} />`
 - `src/components/TopNav.tsx` — Top tab navigation (Discover, Library, Stats) within the Games section
 - `src/components/BottomNav.tsx` — Bottom navigation (Home, TV, Games, Collections, Profile)
-- `src/app/api/polls/` — Poll endpoints: GET active polls, POST vote, POST generate (via Gemini API)
+- `src/app/api/gamespot/route.ts` — Fetches GameSpot RSS, uses Gemini to pick articles relevant to a game
 - `src/app/api/metacritic/route.ts` — Fetches trending games from Metacritic backend API with scores and cover art
+- `src/app/api/polls/` — Poll endpoints: GET active polls, POST vote, POST generate (via Gemini API)
 - `src/middleware.ts` — Auth-protected route logic
 - `supabase/migrations/` — SQL migrations (run manually in Supabase SQL Editor; not auto-applied)
 
