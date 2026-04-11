@@ -158,9 +158,9 @@ export default function ExplorePage() {
                     className="flex-shrink-0 w-[200px] card-glass overflow-hidden hover:border-primary/30 transition group"
                   >
                     {item.image ? (
-                      <img src={item.image} alt="" className="w-full h-28 object-cover" />
+                      <img src={item.image} alt="" className="w-full h-44 object-cover" />
                     ) : (
-                      <div className="w-full h-28 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">
+                      <div className="w-full h-44 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">
                         🎮
                       </div>
                     )}
@@ -207,9 +207,9 @@ export default function ExplorePage() {
                     className="flex-shrink-0 w-[220px] card-glass overflow-hidden hover:border-primary/30 transition group"
                   >
                     {item.image ? (
-                      <img src={item.image} alt="" className="w-full h-32 object-cover" />
+                      <img src={item.image} alt="" className="w-full h-44 object-cover" />
                     ) : (
-                      <div className="w-full h-32 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">
+                      <div className="w-full h-44 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">
                         📰
                       </div>
                     )}
