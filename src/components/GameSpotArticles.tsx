@@ -15,21 +15,9 @@ export default function GameSpotArticles({ gameTitle }: { gameTitle: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch game-specific articles first, then supplement with general GameSpot if needed
-    Promise.all([
-      fetch(`/api/news?game=${encodeURIComponent(gameTitle)}`).then((r) => r.json()),
-      fetch("/api/news").then((r) => r.json()),
-    ])
-      .then(([gameNews, allNews]: [NewsItem[], NewsItem[]]) => {
-        // Get GameSpot articles matching this game
-        const gameSpotGame = (gameNews ?? []).filter((n) => n.source === "GameSpot");
-        // Get general GameSpot articles as backfill
-        const gameSpotGeneral = (allNews ?? []).filter(
-          (n) => n.source === "GameSpot" && !gameSpotGame.some((g) => g.link === n.link)
-        );
-        // Combine: game-specific first, then general, up to 10
-        setArticles([...gameSpotGame, ...gameSpotGeneral].slice(0, 10));
-      })
+    fetch(`/api/gamespot?game=${encodeURIComponent(gameTitle)}`)
+      .then((r) => r.json())
+      .then((data) => setArticles(data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [gameTitle]);
