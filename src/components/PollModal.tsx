@@ -70,12 +70,12 @@ export default function PollModal({ poll, onClose, onVoted }: PollModalProps) {
           <img
             src={poll.imageUrl}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-40 blur-sm"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10" />
         )}
-        <div className="absolute inset-0 bg-surface/90" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/80 to-surface/60" />
 
         {/* Content */}
         <div className="relative p-6">
