@@ -5,6 +5,7 @@ import Link from "next/link";
 import { searchGames } from "@/lib/services/igdb";
 import AchievementCelebration from "@/components/AchievementCelebration";
 import PollCarousel from "@/components/PollCarousel";
+import TrendingChats from "@/components/TrendingChats";
 
 interface NewsItem {
   title: string;
@@ -31,7 +32,6 @@ const TRENDING_GAMES = Object.values(GAME_REGISTRY).map((config) => ({
   genre: config.genre,
 }));
 
-const GENRES = ["RPG", "Action", "Adventure", "Shooter", "Strategy", "Indie", "Horror", "Platformer", "Sports", "Racing"];
 
 export default function ExplorePage() {
   const [query, setQuery] = useState("");
@@ -91,18 +91,10 @@ export default function ExplorePage() {
             </div>
           )}
         </div>
-        <div className="flex flex-wrap justify-center gap-2 mt-4">
-          {GENRES.map((g) => (
-            <button
-              key={g}
-              onClick={() => { setQuery(g); handleInput(g); }}
-              className="px-4 py-1.5 rounded-full text-sm border border-border text-text-secondary hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition"
-            >
-              {g}
-            </button>
-          ))}
-        </div>
       </div>
+
+      {/* Trending Chats */}
+      {!searched && <TrendingChats />}
 
       {/* Search results */}
       {searched && results.length > 0 && (
