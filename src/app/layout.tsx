@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "FanMapper — Track Games. Explore Wikis. Map Worlds.",
+  title: "FanCompanion — Track Games. Explore Wikis. Map Worlds.",
   description: "Game library tracker with Fandom wiki integration, interactive maps, achievement sync, and more.",
   manifest: "/manifest.json",
   icons: {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "FanMapper",
+    title: "FanCompanion",
   },
 };
 

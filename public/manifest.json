@@ -1,6 +1,6 @@
 {
-  "name": "FanMapper — Track Games. Explore Wikis. Map Worlds.",
-  "short_name": "FanMapper",
+  "name": "FanCompanion — Track Games. Explore Wikis. Map Worlds.",
+  "short_name": "FanCompanion",
   "description": "Game library tracker with Fandom wiki integration, interactive maps, achievement sync, and more.",
   "start_url": "/explore",
   "display": "standalone",

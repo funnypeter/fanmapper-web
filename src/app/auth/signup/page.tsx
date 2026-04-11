@@ -33,8 +33,9 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold">
-            Fan<span className="text-primary">Mapper</span>
+          <h1 className="flex items-center justify-center gap-3 text-4xl font-bold">
+            <img src="/icon-192.png" alt="" className="h-10 w-10" />
+            Fan<span className="text-primary">Companion</span>
           </h1>
           <p className="mt-2 text-text-secondary">Create your account</p>
         </div>

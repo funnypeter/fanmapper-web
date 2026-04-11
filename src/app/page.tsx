@@ -36,8 +36,9 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-6 md:px-12 py-4 border-b border-border/50 backdrop-blur sticky top-0 z-50 bg-background/80">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Fan<span className="text-primary">Mapper</span>
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <img src="/icon-192.png" alt="" className="h-8 w-8" />
+          Fan<span className="text-primary">Companion</span>
         </h1>
         <div className="flex items-center gap-4">
           <Link href="/auth/login" className="text-sm text-text-secondary hover:text-foreground transition">
@@ -112,7 +113,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6 md:px-12 py-20">
           <h3 className="text-3xl font-bold text-center mb-4">Everything in one place</h3>
           <p className="text-center text-text-secondary mb-14 max-w-xl mx-auto">
-            Stop juggling browser tabs, spreadsheets, and multiple apps. FanMapper brings it all together.
+            Stop juggling browser tabs, spreadsheets, and multiple apps. FanCompanion brings it all together.
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             {FEATURES.map((f) => (
@@ -139,7 +140,7 @@ export default function LandingPage() {
       <footer className="border-t border-border/50 px-6 md:px-12 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <span className="font-bold">Fan<span className="text-primary">Mapper</span></span>
+            <span className="font-bold">Fan<span className="text-primary">Companion</span></span>
             <Link href="/explore" className="text-sm text-text-muted hover:text-foreground transition">Explore</Link>
             <a href="https://github.com/funnypeter/fanmapper-web" className="text-sm text-text-muted hover:text-foreground transition">GitHub</a>
           </div>

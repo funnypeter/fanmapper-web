@@ -16,8 +16,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         {/* Top bar — logo + sign in */}
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl">
           <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3 border-b border-border/30">
-            <Link href="/explore" className="text-xl font-bold tracking-tight">
-              Fan<span className="text-primary">Mapper</span>
+            <Link href="/explore" className="flex items-center gap-2 text-xl font-bold tracking-tight">
+              <img src="/icon-192.png" alt="" className="h-7 w-7" />
+              Fan<span className="text-primary">Companion</span>
             </Link>
             {!user && (
               <Link href="/auth/login" className="btn-primary text-sm px-4 py-2">
