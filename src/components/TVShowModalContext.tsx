@@ -2,20 +2,18 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import TVShowDetailContent from "./TVShowDetailContent";
-import { TV_SHOW_REGISTRY } from "@/lib/services/tvRegistry";
-import { findTVWikiConfigByTmdbId } from "@/lib/services/tvRegistry";
 import { fetchPage } from "@/lib/services/fandom";
 
 interface TVShowModalContextType {
   openShow: (showId: string) => void;
   closeShow: () => void;
-  openEpisodeWiki: (episodeTitle: string) => void;
+  openWikiArticle: (wikiSubdomain: string, pageTitle: string) => void;
 }
 
 const TVShowModalContext = createContext<TVShowModalContextType>({
   openShow: () => {},
   closeShow: () => {},
-  openEpisodeWiki: () => {},
+  openWikiArticle: () => {},
 });
 
 export function useTVShowModal() {
@@ -46,7 +44,7 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
     <div>
       <button onClick={onBack} className="flex items-center gap-2 text-primary hover:text-primary-light transition mb-4">
         <span>←</span>
-        <span className="text-sm font-medium">Back to episodes</span>
+        <span className="text-sm font-medium">Back</span>
       </button>
       <h2 className="text-2xl font-bold mb-4">{pageTitle}</h2>
 
@@ -64,7 +62,7 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
           </div>
         </div>
       ) : (
-        <p className="text-text-secondary text-center py-8">No wiki content available for this episode.</p>
+        <p className="text-text-secondary text-center py-8">No wiki content available.</p>
       )}
     </div>
   );
@@ -72,31 +70,30 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
 
 export function TVShowModalProvider({ children }: { children: React.ReactNode }) {
   const [activeShowId, setActiveShowId] = useState<string | null>(null);
-  const [wikiArticle, setWikiArticle] = useState<string | null>(null);
+  const [wikiView, setWikiView] = useState<{ wiki: string; page: string } | null>(null);
 
   const openShow = useCallback((showId: string) => {
     setActiveShowId(showId);
-    setWikiArticle(null);
+    setWikiView(null);
     document.body.style.overflow = "hidden";
     window.history.pushState({ tvModal: "show" }, "");
   }, []);
 
   const closeShow = useCallback(() => {
     setActiveShowId(null);
-    setWikiArticle(null);
+    setWikiView(null);
     document.body.style.overflow = "";
   }, []);
 
-  const openEpisodeWiki = useCallback((episodeTitle: string) => {
-    setWikiArticle(episodeTitle);
+  const openWikiArticle = useCallback((wikiSubdomain: string, pageTitle: string) => {
+    setWikiView({ wiki: wikiSubdomain, page: pageTitle });
     window.history.pushState({ tvModal: "wiki" }, "");
   }, []);
 
-  // Handle Android back button / browser back
   useEffect(() => {
     function handlePopState() {
-      if (wikiArticle) {
-        setWikiArticle(null);
+      if (wikiView) {
+        setWikiView(null);
       } else if (activeShowId) {
         setActiveShowId(null);
         document.body.style.overflow = "";
@@ -104,13 +101,10 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
     }
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [activeShowId, wikiArticle]);
-
-  const registryMatch = activeShowId ? findTVWikiConfigByTmdbId(activeShowId) : null;
-  const wikiSubdomain = registryMatch?.config.wiki ?? null;
+  }, [activeShowId, wikiView]);
 
   return (
-    <TVShowModalContext.Provider value={{ openShow, closeShow, openEpisodeWiki }}>
+    <TVShowModalContext.Provider value={{ openShow, closeShow, openWikiArticle }}>
       {children}
 
       {activeShowId && (
@@ -121,7 +115,6 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
             className="relative w-full sm:max-w-2xl h-[92vh] sm:h-[85vh] bg-background rounded-t-2xl sm:rounded-2xl overflow-hidden border border-border/50 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close bar */}
             <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-surface-elevated flex-shrink-0">
               <div className="w-10 h-1 rounded-full bg-border mx-auto sm:hidden" />
               <button
@@ -132,13 +125,12 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
               </button>
             </div>
 
-            {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-              {wikiArticle && wikiSubdomain ? (
+              {wikiView ? (
                 <WikiArticleView
-                  wiki={wikiSubdomain}
-                  pageTitle={wikiArticle}
-                  onBack={() => setWikiArticle(null)}
+                  wiki={wikiView.wiki}
+                  pageTitle={wikiView.page}
+                  onBack={() => setWikiView(null)}
                 />
               ) : (
                 <TVShowDetailContent showId={activeShowId} />

@@ -28,7 +28,7 @@ const STATUSES = [
 export default function TVShowDetailContent({ showId }: { showId: string }) {
   const router = useRouter();
   const supabase = createClient();
-  const { openEpisodeWiki } = useTVShowModal();
+  const { openWikiArticle } = useTVShowModal();
 
   const [show, setShow] = useState<TVDBShowDetail | null>(null);
   const [userShow, setUserShow] = useState<UserShowData | null>(null);
@@ -39,9 +39,16 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
   const [hoverRating, setHoverRating] = useState(0);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(null);
   const [checkedEpisodes, setCheckedEpisodes] = useState<Set<string>>(new Set());
-  // Find wiki config for this show
+  const [detectedWiki, setDetectedWiki] = useState<string | null>(null);
+
+  // Find wiki config for this show — registry first, then auto-detected
   const registryMatch = findTVWikiConfigByTmdbId(showId);
-  const wikiKey = registryMatch?.key ?? null;
+  const wikiKey = registryMatch?.key ?? (detectedWiki ? `auto-tv-${showId}` : null);
+  const wikiSubdomain = registryMatch?.config.wiki ?? detectedWiki;
+
+  function openWiki(pageTitle: string) {
+    if (wikiSubdomain) openWikiArticle(wikiSubdomain, pageTitle);
+  }
 
   useEffect(() => {
     async function load() {
@@ -75,6 +82,17 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
     }
     load();
   }, [showId]);
+
+  // Auto-detect Fandom wiki for shows not in registry
+  useEffect(() => {
+    if (registryMatch || !show?.title) return;
+    fetch(`/api/wiki-detect?title=${encodeURIComponent(show.title)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.found && data.wiki) setDetectedWiki(data.wiki);
+      })
+      .catch(() => {});
+  }, [show?.title, registryMatch]);
 
   async function handleAddToLibrary() {
     if (!user) { router.push("/auth/login"); return; }
@@ -261,15 +279,15 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
             {show.cast.map((member, i) => (
               <button
                 key={i}
-                onClick={() => wikiKey && openEpisodeWiki(member.characterName)}
-                className={`flex-shrink-0 w-[100px] text-center ${wikiKey ? "cursor-pointer group" : ""}`}
+                onClick={() => wikiSubdomain && openWiki(member.characterName)}
+                className={`flex-shrink-0 w-[100px] text-center ${wikiSubdomain ? "cursor-pointer group" : ""}`}
               >
                 {member.image ? (
-                  <img src={member.image} alt={member.name} className={`w-20 h-20 rounded-full object-cover mx-auto border-2 border-border/50 ${wikiKey ? "group-hover:border-primary transition" : ""}`} />
+                  <img src={member.image} alt={member.name} className={`w-20 h-20 rounded-full object-cover mx-auto border-2 border-border/50 ${wikiSubdomain ? "group-hover:border-primary transition" : ""}`} />
                 ) : (
-                  <div className={`w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center text-text-muted text-2xl mx-auto ${wikiKey ? "group-hover:border-primary border-2 border-transparent transition" : ""}`}>👤</div>
+                  <div className={`w-20 h-20 rounded-full bg-surface-elevated flex items-center justify-center text-text-muted text-2xl mx-auto ${wikiSubdomain ? "group-hover:border-primary border-2 border-transparent transition" : ""}`}>👤</div>
                 )}
-                <p className={`text-xs font-semibold mt-2 truncate ${wikiKey ? "group-hover:text-primary transition" : ""}`}>{member.name}</p>
+                <p className={`text-xs font-semibold mt-2 truncate ${wikiSubdomain ? "group-hover:text-primary transition" : ""}`}>{member.name}</p>
                 <p className="text-[10px] text-text-muted truncate">{member.characterName}</p>
               </button>
             ))}
@@ -336,17 +354,17 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                             )}
 
                             <button
-                              onClick={() => wikiKey && openEpisodeWiki(ep.title)}
-                              className={`flex-1 min-w-0 text-left ${wikiKey ? "cursor-pointer" : ""}`}
+                              onClick={() => wikiSubdomain && openWiki(ep.title)}
+                              className={`flex-1 min-w-0 text-left ${wikiSubdomain ? "cursor-pointer" : ""}`}
                             >
-                              <p className={`text-sm font-medium truncate ${isChecked ? "text-text-muted line-through" : ""} ${wikiKey ? "hover:text-primary transition" : ""}`}>
+                              <p className={`text-sm font-medium truncate ${isChecked ? "text-text-muted line-through" : ""} ${wikiSubdomain ? "hover:text-primary transition" : ""}`}>
                                 <span className="text-text-muted mr-1">E{ep.episodeNumber}</span>
                                 {ep.title}
                               </p>
                               <div className="flex items-center gap-2">
                                 {ep.aired && <span className="text-[10px] text-text-muted">{ep.aired}</span>}
                                 {ep.runtime && <span className="text-[10px] text-text-muted">· {ep.runtime}min</span>}
-                                {wikiKey && <span className="text-[10px] text-primary">View wiki →</span>}
+                                {wikiSubdomain && <span className="text-[10px] text-primary">View wiki →</span>}
                               </div>
                             </button>
                           </div>
