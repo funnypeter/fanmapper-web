@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { findTVWikiConfigByTvdbId } from "@/lib/services/tvRegistry";
+import { findTVWikiConfigByTmdbId } from "@/lib/services/tvRegistry";
 import type { TVDBShowDetail, TVDBEpisode } from "@/lib/services/tvdb";
 
 interface UserShowData {
@@ -56,13 +56,13 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
         if (us) { setUserShow(us); setUserRating(us.rating ?? 0); }
 
         // Load episode progress
-        const wikiKey = findTVWikiConfigByTvdbId(showId)?.key ?? showId;
+        const wikiKey = findTVWikiConfigByTmdbId(showId)?.key ?? showId;
         const { data: progress } = await supabase.from("tv_wiki_progress").select("page_id").eq("user_id", u.id).eq("show_key", wikiKey);
         if (progress) setCheckedEpisodes(new Set(progress.map((p) => p.page_id)));
       }
 
       // Also load from localStorage
-      const wikiKey = findTVWikiConfigByTvdbId(showId)?.key ?? showId;
+      const wikiKey = findTVWikiConfigByTmdbId(showId)?.key ?? showId;
       const local = localStorage.getItem(`tv-progress-${wikiKey}`);
       if (local) {
         const localSet = new Set<string>(JSON.parse(local));
@@ -80,7 +80,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
     try {
       if (show) {
         await supabase.from("tv_shows").upsert({
-          id: show.id, tvdb_id: show.tvdbId, title: show.title, poster_url: show.posterUrl,
+          id: show.id, tvdb_id: show.tmdbId, title: show.title, poster_url: show.posterUrl,
           genres: show.genres, network: show.network,
           release_date: show.releaseDate, summary: show.summary,
         }, { onConflict: "id" });
@@ -114,7 +114,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
 
   async function toggleEpisode(ep: TVDBEpisode) {
     const epId = `s${ep.seasonNumber}e${ep.episodeNumber}`;
-    const wikiKey = findTVWikiConfigByTvdbId(showId)?.key ?? showId;
+    const wikiKey = findTVWikiConfigByTmdbId(showId)?.key ?? showId;
     const newChecked = new Set(checkedEpisodes);
 
     if (newChecked.has(epId)) {

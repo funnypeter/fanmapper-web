@@ -1,7 +1,7 @@
 export interface TVShowConfig {
   showTitle: string;
   wiki: string;
-  tvdbId: string;
+  tmdbId: string;
   genre: string;
   network: string;
   categories: Record<string, string>;
@@ -11,7 +11,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "house-of-the-dragon": {
     showTitle: "House of the Dragon",
     wiki: "houseofthedragon",
-    tvdbId: "tvdb-371572",
+    tmdbId: "tmdb-94997",
     genre: "Fantasy",
     network: "HBO",
     categories: { characters: "Characters", episodes: "Episodes", locations: "Locations", houses: "Houses" },
@@ -19,7 +19,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "severance": {
     showTitle: "Severance",
     wiki: "severance-tv",
-    tvdbId: "tvdb-371980",
+    tmdbId: "tmdb-95396",
     genre: "Thriller",
     network: "Apple TV+",
     categories: { characters: "Characters", episodes: "Episodes", locations: "Locations" },
@@ -27,7 +27,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "the-last-of-us": {
     showTitle: "The Last of Us",
     wiki: "thelastofus",
-    tvdbId: "tvdb-392256",
+    tmdbId: "tmdb-100088",
     genre: "Drama",
     network: "HBO",
     categories: { characters: "Characters", episodes: "Episodes (TV Series)", locations: "Locations" },
@@ -35,7 +35,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "squid-game": {
     showTitle: "Squid Game",
     wiki: "squidgame",
-    tvdbId: "tvdb-389828",
+    tmdbId: "tmdb-93405",
     genre: "Thriller",
     network: "Netflix",
     categories: { characters: "Characters", episodes: "Episodes", games: "Games" },
@@ -43,7 +43,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "stranger-things": {
     showTitle: "Stranger Things",
     wiki: "strangerthings",
-    tvdbId: "tvdb-305288",
+    tmdbId: "tmdb-66732",
     genre: "Sci-Fi",
     network: "Netflix",
     categories: { characters: "Characters", episodes: "Episodes", creatures: "Creatures", locations: "Locations" },
@@ -51,7 +51,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "the-mandalorian": {
     showTitle: "The Mandalorian",
     wiki: "starwars",
-    tvdbId: "tvdb-361753",
+    tmdbId: "tmdb-82856",
     genre: "Sci-Fi",
     network: "Disney+",
     categories: { characters: "The Mandalorian characters", episodes: "The Mandalorian episodes" },
@@ -59,7 +59,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "breaking-bad": {
     showTitle: "Breaking Bad",
     wiki: "breakingbad",
-    tvdbId: "tvdb-81189",
+    tmdbId: "tmdb-1396",
     genre: "Crime",
     network: "AMC",
     categories: { characters: "Characters", episodes: "Episodes", locations: "Locations" },
@@ -67,7 +67,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "game-of-thrones": {
     showTitle: "Game of Thrones",
     wiki: "gameofthrones",
-    tvdbId: "tvdb-121361",
+    tmdbId: "tmdb-1399",
     genre: "Fantasy",
     network: "HBO",
     categories: { characters: "Characters", episodes: "Episodes", houses: "Great Houses", locations: "Locations" },
@@ -75,7 +75,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "the-bear": {
     showTitle: "The Bear",
     wiki: "the-bear-tv",
-    tvdbId: "tvdb-409680",
+    tmdbId: "tmdb-136315",
     genre: "Drama",
     network: "FX",
     categories: { characters: "Characters", episodes: "Episodes" },
@@ -83,7 +83,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "shogun": {
     showTitle: "Shogun",
     wiki: "shogun",
-    tvdbId: "tvdb-392434",
+    tmdbId: "tmdb-126308",
     genre: "Historical Drama",
     network: "FX",
     categories: { characters: "Characters", episodes: "Episodes" },
@@ -91,7 +91,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "fallout-tv": {
     showTitle: "Fallout",
     wiki: "fallout",
-    tvdbId: "tvdb-413289",
+    tmdbId: "tmdb-106379",
     genre: "Sci-Fi",
     network: "Prime Video",
     categories: { characters: "Fallout TV characters", episodes: "Fallout TV episodes", locations: "Fallout TV locations" },
@@ -99,7 +99,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "wednesday": {
     showTitle: "Wednesday",
     wiki: "wednesday-netflix",
-    tvdbId: "tvdb-394016",
+    tmdbId: "tmdb-119051",
     genre: "Comedy",
     network: "Netflix",
     categories: { characters: "Characters", episodes: "Episodes" },
@@ -107,7 +107,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "arcane": {
     showTitle: "Arcane",
     wiki: "leagueoflegends",
-    tvdbId: "tvdb-393100",
+    tmdbId: "tmdb-94605",
     genre: "Animation",
     network: "Netflix",
     categories: { characters: "Arcane characters", episodes: "Arcane episodes" },
@@ -115,7 +115,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "the-boys": {
     showTitle: "The Boys",
     wiki: "the-boys",
-    tvdbId: "tvdb-355567",
+    tmdbId: "tmdb-76479",
     genre: "Action",
     network: "Prime Video",
     categories: { characters: "Characters", episodes: "Episodes", supes: "Supes" },
@@ -123,7 +123,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "andor": {
     showTitle: "Andor",
     wiki: "starwars",
-    tvdbId: "tvdb-380661",
+    tmdbId: "tmdb-83867",
     genre: "Sci-Fi",
     network: "Disney+",
     categories: { characters: "Andor characters", episodes: "Andor episodes" },
@@ -137,9 +137,9 @@ export function findTVWikiConfig(showTitle: string): TVShowConfig | null {
   ) ?? null;
 }
 
-export function findTVWikiConfigByTvdbId(tvdbId: string): { key: string; config: TVShowConfig } | null {
+export function findTVWikiConfigByTmdbId(tmdbId: string): { key: string; config: TVShowConfig } | null {
   const entry = Object.entries(TV_SHOW_REGISTRY).find(
-    ([, c]) => c.tvdbId === tvdbId
+    ([, c]) => c.tmdbId === tmdbId
   );
   return entry ? { key: entry[0], config: entry[1] } : null;
 }

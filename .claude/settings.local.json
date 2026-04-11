@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf .next)",
+      "Bash(npx next:*)",
+      "WebSearch",
+      "WebFetch(domain:www.metacritic.com)",
+      "WebFetch(domain:rss.app)",
+      "WebFetch(domain:internal-prod.apigee.fandom.net)",
+      "WebFetch(domain:backend.metacritic.com)",
+      "WebFetch(domain:www.gamespot.com)",
+      "WebFetch(domain:thetvdb.github.io)",
+      "WebFetch(domain:artworks.thetvdb.com)",
+      "WebFetch(domain:image.tmdb.org)",
+      "WebFetch(domain:api.themoviedb.org)",
+      "WebFetch(domain:www.themoviedb.org)",
+      "Bash(curl -s \"https://api.themoviedb.org/3/tv/94997?api_key=&language=en-US\")",
+      "WebFetch(domain:developer.themoviedb.org)"
+    ]
+  }
+}

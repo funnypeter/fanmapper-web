@@ -1,6 +1,6 @@
 export interface TVDBShow {
   id: string;
-  tvdbId: number;
+  tmdbId: number;
   title: string;
   posterUrl: string | null;
   genres: string[];
@@ -8,10 +8,10 @@ export interface TVDBShow {
   releaseDate: string | null;
   summary: string | null;
   year: string | null;
+  rating: number | null;
 }
 
 export interface TVDBShowDetail extends TVDBShow {
-  rating: number | null;
   status: string | null;
   cast: { name: string; characterName: string; image: string | null }[];
   seasons: { seasonNumber: number; episodes: TVDBEpisode[] }[];
@@ -32,7 +32,8 @@ export async function searchShows(query: string): Promise<TVDBShow[]> {
   try {
     const res = await fetch(`/api/tv/search?q=${encodeURIComponent(query)}`);
     if (!res.ok) return [];
-    return res.json();
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }

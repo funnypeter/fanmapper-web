@@ -1,123 +1,90 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const TVDB_BASE = "https://api4.thetvdb.com/v4";
-
-let accessToken: string | null = null;
-let tokenExpiresAt = 0;
-
-async function getToken(): Promise<string> {
-  if (accessToken && Date.now() < tokenExpiresAt) return accessToken;
-  const apiKey = process.env.TVDB_API_KEY;
-  if (!apiKey) throw new Error("TVDB_API_KEY not configured");
-
-  const res = await fetch(`${TVDB_BASE}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ apikey: apiKey }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`TVDB login ${res.status}: ${errText}`);
-  }
-  const data = await res.json();
-  accessToken = data.data.token;
-  tokenExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-  return accessToken!;
-}
+const TMDB_BASE = "https://api.themoviedb.org/3";
+const IMG_BASE = "https://image.tmdb.org/t/p/w500";
+const IMG_PROFILE = "https://image.tmdb.org/t/p/w185";
+const IMG_STILL = "https://image.tmdb.org/t/p/w300";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const tvdbId = id.replace("tvdb-", "");
+  const tmdbId = id.replace("tmdb-", "");
+
+  const apiKey = process.env.TMDB_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "TMDB_API_KEY not configured" }, { status: 500 });
 
   try {
-    const token = await getToken();
-    const headers = { Authorization: `Bearer ${token}` };
+    // Fetch show details with credits appended
+    const detailRes = await fetch(
+      `${TMDB_BASE}/tv/${tmdbId}?api_key=${apiKey}&language=en-US&append_to_response=credits`
+    );
 
-    // Fetch series extended (includes characters) and episodes in parallel
-    const [seriesRes, episodesRes] = await Promise.all([
-      fetch(`${TVDB_BASE}/series/${tvdbId}/extended`, { headers }),
-      fetch(`${TVDB_BASE}/series/${tvdbId}/episodes/default?page=0`, { headers }),
-    ]);
+    if (!detailRes.ok) return NextResponse.json({ error: "Show not found" }, { status: 404 });
+    const show = await detailRes.json();
 
-    if (!seriesRes.ok) return NextResponse.json({ error: "Show not found" }, { status: 404 });
-
-    const seriesData = (await seriesRes.json()).data;
-
-    // Parse cast from characters
-    const cast = (seriesData.characters ?? [])
-      .filter((c: any) => c.peopleType === "Actor" || c.type === 3)
-      .sort((a: any, b: any) => (a.sort ?? 999) - (b.sort ?? 999))
+    // Parse cast from credits
+    const cast = (show.credits?.cast ?? [])
       .slice(0, 20)
       .map((c: any) => ({
-        name: c.personName || c.name,
-        characterName: c.name || "Unknown",
-        image: c.personImgURL || c.image || null,
+        name: c.name,
+        characterName: c.character || "Unknown",
+        image: c.profile_path ? `${IMG_PROFILE}${c.profile_path}` : null,
       }));
 
-    // Parse episodes and group by season
-    let allEpisodes: any[] = [];
-    if (episodesRes.ok) {
-      const epData = await episodesRes.json();
-      allEpisodes = epData.data?.episodes ?? [];
+    // Fetch episodes for each season in parallel
+    const seasonNumbers = (show.seasons ?? [])
+      .filter((s: any) => s.season_number > 0)
+      .map((s: any) => s.season_number);
 
-      // Fetch additional pages if needed
-      let page = 1;
-      while (allEpisodes.length > 0 && allEpisodes.length % 500 === 0 && page < 10) {
-        const moreRes = await fetch(`${TVDB_BASE}/series/${tvdbId}/episodes/default?page=${page}`, { headers });
-        if (!moreRes.ok) break;
-        const moreData = await moreRes.json();
-        const moreEps = moreData.data?.episodes ?? [];
-        if (moreEps.length === 0) break;
-        allEpisodes.push(...moreEps);
-        page++;
-      }
-    }
+    const seasonResults = await Promise.all(
+      seasonNumbers.map(async (sn: number) => {
+        try {
+          const sRes = await fetch(
+            `${TMDB_BASE}/tv/${tmdbId}/season/${sn}?api_key=${apiKey}&language=en-US`
+          );
+          if (!sRes.ok) return null;
+          const sData = await sRes.json();
+          return {
+            seasonNumber: sn,
+            episodes: (sData.episodes ?? []).map((ep: any) => ({
+              id: ep.id,
+              title: ep.name || `Episode ${ep.episode_number}`,
+              seasonNumber: sn,
+              episodeNumber: ep.episode_number,
+              aired: ep.air_date || null,
+              image: ep.still_path ? `${IMG_STILL}${ep.still_path}` : null,
+              overview: ep.overview || null,
+              runtime: ep.runtime || null,
+            })),
+          };
+        } catch {
+          return null;
+        }
+      })
+    );
 
-    // Group episodes by season
-    const seasonMap = new Map<number, any[]>();
-    for (const ep of allEpisodes) {
-      const sn = ep.seasonNumber ?? 0;
-      if (sn === 0) continue; // Skip specials
-      if (!seasonMap.has(sn)) seasonMap.set(sn, []);
-      seasonMap.get(sn)!.push({
-        id: ep.id,
-        title: ep.name || `Episode ${ep.number}`,
-        seasonNumber: sn,
-        episodeNumber: ep.number,
-        aired: ep.aired || null,
-        image: ep.image || null,
-        overview: ep.overview || null,
-        runtime: ep.runtime || null,
-      });
-    }
-
-    // Sort episodes within each season
-    const seasons = [...seasonMap.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([seasonNumber, episodes]) => ({
-        seasonNumber,
-        episodes: episodes.sort((a: any, b: any) => a.episodeNumber - b.episodeNumber),
-      }));
+    const seasons = seasonResults.filter(Boolean);
 
     // Extract genres
-    const genres = (seriesData.genres ?? []).map((g: any) => g.name ?? g);
+    const genres = (show.genres ?? []).map((g: any) => g.name);
+
+    // Get network
+    const network = show.networks?.[0]?.name || null;
 
     return NextResponse.json({
-      id: `tvdb-${seriesData.id}`,
-      tvdbId: seriesData.id,
-      title: seriesData.name,
-      posterUrl: seriesData.image || null,
+      id: `tmdb-${show.id}`,
+      tmdbId: show.id,
+      title: show.name,
+      posterUrl: show.poster_path ? `${IMG_BASE}${show.poster_path}` : null,
       genres,
-      network: seriesData.companies?.[0]?.name || null,
-      releaseDate: seriesData.firstAired || null,
-      summary: seriesData.overview || null,
-      year: seriesData.year || null,
-      rating: seriesData.score ? Math.round(seriesData.score * 10) : null,
-      status: seriesData.status?.name || null,
+      network,
+      releaseDate: show.first_air_date || null,
+      summary: show.overview || null,
+      year: show.first_air_date?.substring(0, 4) || null,
+      rating: show.vote_average ? Math.round(show.vote_average * 10) : null,
+      status: show.status || null,
       cast,
       seasons,
     });
