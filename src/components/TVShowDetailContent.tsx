@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -40,6 +40,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
   const [expandedSeason, setExpandedSeason] = useState<number | null>(null);
   const [checkedEpisodes, setCheckedEpisodes] = useState<Set<string>>(new Set());
   const [detectedWiki, setDetectedWiki] = useState<string | null>(null);
+  const expandedSeasonRef = useRef<HTMLDivElement>(null);
 
   // Find wiki config for this show — registry first, then auto-detected
   const registryMatch = findTVWikiConfigByTmdbId(showId);
@@ -100,6 +101,13 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
       }
 
       setLoading(false);
+
+      // Scroll to expanded season after render
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          expandedSeasonRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      });
     }
     load();
   }, [showId]);
@@ -338,7 +346,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
               const seasonChecked = season.episodes.filter((ep) => checkedEpisodes.has(`s${ep.seasonNumber}e${ep.episodeNumber}`)).length;
 
               return (
-                <div key={season.seasonNumber} className="card-glass overflow-hidden">
+                <div key={season.seasonNumber} ref={isExpanded ? expandedSeasonRef : undefined} className="card-glass overflow-hidden">
                   <button
                     onClick={() => setExpandedSeason(isExpanded ? null : season.seasonNumber)}
                     className="w-full flex items-center justify-between p-4 text-left hover:bg-surface-elevated/50 transition"
