@@ -1,6 +1,8 @@
-# FanMapper Web
+# FanCompanion
 
-A Next.js web app for tracking game libraries with Fandom wiki integration, Steam imports, achievements, interactive maps, stats dashboard, community polls, live chats, and trending feeds from Metacritic and GameSpot.
+A Next.js web app for tracking **game and TV libraries** with Fandom wiki integration, Steam imports, achievements, interactive maps, episode tracking, AI episode briefings, stats dashboards, community polls, live chats, and trending feeds from Metacritic, GameSpot, and TVGuide.
+
+> Repo and project folder are still named `FanMapper-Web` / `fanmapper-web` for git-history stability. The user-facing brand is **FanCompanion**. Internal User-Agent strings in `fandom.ts` and `api/img/route.ts` intentionally keep the legacy name.
 
 ## Stack
 
@@ -15,12 +17,13 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 
 - **Server-side API key proxying**: All Steam, IGDB, and image requests go through `/api/*` routes so credentials never reach the client
 - **Image proxy at `/api/img?url=`**: Fandom blocks hotlinking, so wiki article images route through our server
-- **Game IDs are prefixed**: `igdb-{id}` for IGDB games, `steam-{appid}` for Steam imports — this distinguishes sources throughout the app
-- **Wiki keys are prefixed too**: `auto-{wiki}` for auto-detected wikis (e.g. `auto-thesims4`); plain keys (`elden-ring`, `skyrim`) for the 16 hand-curated registry entries
-- **Wiki progress dual-stored**: localStorage (instant) + Supabase wiki_progress table (cross-device sync)
-- **Two-level navigation**: Bottom nav (Home, TV, Games, Collections, Profile) for main sections; top tabs (Discover, Library, Stats) for sub-navigation within Games
-- **Game detail opens in modal**: Clicking a game card opens `GameDetailContent` in a scrollable modal via `GameModalContext`. Direct URL `/game/[id]` still works as full page fallback. To make other game links open in the modal, use `useGameModal().openGame(id)` instead of `<Link>`.
-- **Routes are public by default**: Only `/library`, `/profile`, `/profile/*`, `/stats` require auth via middleware
+- **Game IDs are prefixed**: `igdb-{id}` for IGDB games, `steam-{appid}` for Steam imports, `tmdb-{id}` for TV shows — this distinguishes sources throughout the app
+- **Wiki keys are prefixed too**: plain keys (`elden-ring`, `skyrim`) for the 16 hand-curated game registry entries; `auto-{wiki}` for auto-detected game wikis (e.g. `auto-thesims4`); `auto-tv-{tmdbId}` for auto-detected TV wikis that aren't in `tvRegistry`
+- **Wiki progress dual-stored**: localStorage (instant) + Supabase `wiki_progress` / `tv_wiki_progress` (cross-device sync)
+- **Two-level navigation**: Bottom nav (Home, TV, Games, Collections, Profile) for main sections; top tabs (Discover, Library, Stats) within both Games and TV sections
+- **Game detail opens in modal**: Clicking a game card opens `GameDetailContent` in a scrollable modal via `GameModalContext`. Direct URL `/game/[id]` still works as full page fallback. Use `useGameModal().openGame(id)` instead of `<Link>` to open in the modal.
+- **TV show detail opens in modal**: Clicking a show opens `TVShowDetailContent` via `TVShowModalContext`. Use `useTVShowModal().openShow(id)` to swap the modal to another show — this is how "You Might Like" swaps shows without closing the modal. The context exposes three views: show detail, wiki article (`WikiArticleView`), and episode briefing (`BriefingView`).
+- **Routes are public by default**: Only `/library`, `/profile`, `/profile/*`, `/stats`, `/tv/library`, `/tv/stats` require auth via middleware
 
 ## Critical Files
 
@@ -46,11 +49,39 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 - `src/middleware.ts` — Auth-protected route logic
 - `supabase/migrations/` — SQL migrations (run manually in Supabase SQL Editor; not auto-applied)
 
+### TV Section
+
+- `src/lib/services/tvRegistry.ts` — Hand-curated registry of TV shows with TMDB IDs and Fandom wiki configs. Lookup via `findTVWikiConfigByTmdbId()`.
+- `src/lib/services/tvdb.ts` — TV show type definitions and client-side fetch helpers. **Named "tvdb" for legacy reasons — actually uses TMDB.**
+- `src/lib/services/tvPollGenerator.ts` — Gemini prompts tuned for TV-themed polls.
+- `src/app/api/tv/[id]/route.ts` — TMDB show detail fetcher. Appends `credits` and `recommendations` in a single call. Maps TMDB shapes to the internal `TVDBShowDetail` type.
+- `src/app/api/tv/search/route.ts` — TMDB search passthrough.
+- `src/app/api/tv/trending/route.ts` — TMDB trending/tv/week.
+- `src/app/api/tv/briefing/route.ts` — Gemini-generated spoiler-free episode recap + characters. Returns `{ recap, characters }`.
+- `src/app/api/tv/tvguide/route.ts` / `src/app/api/tv/metacritic/route.ts` — TV news aggregation (RSS + Metacritic backend).
+- `src/app/api/tv/polls/route.ts` — TV-specific polls (shares the `polls` table with `category='tv'`).
+- `src/components/TVShowDetailContent.tsx` — Shared TV show detail UI (hero, library, cast, **You Might Like**, episode guide with auto-expand, TVGuide articles). Auto-opens and scrolls to the latest season with watched episodes.
+- `src/components/TVShowModalContext.tsx` — Modal provider for TV. Three views: show detail, wiki article (`WikiArticleView`), episode briefing (`BriefingView`). Use `useTVShowModal()` to get `openShow`, `openWikiArticle`, `openBriefing`.
+- `src/components/TVPollCarousel.tsx`, `src/components/TVTrendingChats.tsx`, `src/components/TVGuideArticles.tsx` — TV equivalents of the reusable game widgets.
+- `src/app/(app)/tv/page.tsx` — TV Discover.
+- `src/app/(app)/tv/library/page.tsx` — TV Library (auth-gated).
+- `src/app/(app)/tv/stats/page.tsx` — TV Stats dashboard (auth-gated).
+- `src/app/(app)/tv/wiki/[show]/page.tsx` + `[page]/page.tsx` — Full-page TV wiki browse / article fallback.
+- `supabase/migrations/007_tv_shows.sql` — `tv_shows`, `user_shows`, `tv_wiki_progress` tables with RLS.
+
 ## IGDB Gotchas
 
 - **`game_time_to_beat` is not a field on `/games`** — fetch from `/game_time_to_beats` endpoint with `where game_id = X`
 - **`external_games.category = 1` means Steam** — use this to find Steam app IDs for cross-linking reviews
 - **IGDB IDs change between guesses and reality** — always verify IDs by calling `/api/games/igdb-{id}` before adding to the registry
+
+## TMDB Gotchas
+
+- **One call, multiple resources**: `/tv/{id}?append_to_response=credits,recommendations` returns detail + cast + similar-audience recommendations in a single request. Don't fan out.
+- **`recommendations` ≠ `similar`**: `recommendations` is TMDB's audience-based "viewers also watched" — use this for "You Might Like". `similar` is tag-based and less interesting.
+- **Season data is a second call**: Each season's episode list must be fetched via `/tv/{id}/season/{n}`. `api/tv/[id]/route.ts` parallelizes these with `Promise.all`.
+- **ID prefix**: TV show IDs are prefixed `tmdb-{id}` throughout the app. Strip the prefix before calling TMDB.
+- **Type names are legacy**: `TVDBShow` / `TVDBShowDetail` in `tvdb.ts` are kept for stability but the data comes from themoviedb.org, not thetvdb.com.
 
 ## Fandom Gotchas
 
@@ -63,13 +94,30 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 
 ## Auto Wiki Detection
 
-For games not in the 16-game registry, the app auto-detects a Fandom wiki:
+For **games** not in the 16-game registry, the app auto-detects a Fandom wiki:
 
 1. **AutoWikiCard** on game detail calls `/api/wiki-detect?title={gameTitle}`
 2. The endpoint generates subdomain candidates from the title, checks each via Fandom's siteinfo API
 3. If found, queries common category names; falls back to top categories from `allcategories` (sorted by size)
 4. Card links to `/wiki/auto-{subdomain}?title={gameTitle}` (the title query is needed for the wiki page to refetch the config)
 5. The wiki page detects the `auto-` prefix, fetches the config dynamically, and renders the same checklist UI as registry games
+
+For **TV shows** not in `tvRegistry`, the same `/api/wiki-detect` endpoint is reused with the show title:
+
+1. `TVShowDetailContent` calls `/api/wiki-detect?title={show.title}` as a fallback after checking the registry
+2. If a wiki is found, progress is stored under `auto-tv-{tmdbId}` in `tv_wiki_progress`
+3. Episode checkbox titles and character names link into the detected wiki via `WikiArticleView` inside the TV modal
+
+## Episode Briefing
+
+Each episode row in the TV modal episode guide has a "Briefing" button that opens a spoiler-free prep view:
+
+1. `TVShowDetailContent` calls `openBriefing({ showTitle, season, episode, episodeTitle })`
+2. `BriefingView` in `TVShowModalContext` fetches `/api/tv/briefing?show=...&season=...&episode=...&episodeTitle=...`
+3. The API calls Gemini with a prompt that enforces "recap everything before this episode, NO spoilers of this episode" and returns `{ recap, characters[] }`
+4. Rendered as two cards inside the modal: "Previously on..." and "Characters to Watch"
+
+Uses `GEMINI_API_KEY` (same key as polls).
 
 ## Game-Specific News
 
@@ -85,11 +133,13 @@ Game detail pages show a News card filtered to articles mentioning the game:
 
 - **Always commit and push** after completing a feature or task — don't wait to be asked
 - **Server components by default**, client components only where state/interactivity needed
-- **Game registry is the source of truth** — Home page trending games, wiki configs, and cover art all pull from `GAME_REGISTRY`
-- **Status colors**: playing=primary purple, completed=success green, backlog=xp yellow, wishlist=accent teal, dropped=error red
+- **Game registry is the source of truth** for curated game wikis — `GAME_REGISTRY` drives Home trending, wiki configs, and cover art
+- **TV registry is the source of truth** for curated TV wikis — `TV_SHOW_REGISTRY` drives trending shows and wiki mappings; auto detection is the fallback for the long tail
+- **Status colors**: playing/watching=primary purple, completed=success green, backlog=xp yellow, wishlist=accent teal, dropped=error red
 - **All state changes save to Supabase immediately** — no "Save" buttons except for review text and playtime input
-- **Bottom nav**: Home, TV, Games, Collections, Profile — Games highlights when on /explore, /library, /stats, /game, /wiki
-- **Top tabs** (within Games): Discover, Library, Stats
+- **Bottom nav**: Home, TV, Games, Collections, Profile — Games highlights on `/explore`, `/library`, `/stats`, `/game`, `/wiki`; TV highlights on any `/tv/*` route
+- **Top tabs** (within Games and within TV): Discover, Library, Stats
+- **Brand wordmark**: always "Fan" in `text-yellow-400` + "Companion" in `text-primary`, wrapped inside a single `<span>` so flex `gap-*` on the parent doesn't split the two halves into separate flex items
 
 ## Environment Variables
 
@@ -98,14 +148,17 @@ Game detail pages show a News card filtered to articles mentioning the game:
 - `IGDB_CLIENT_ID` (Twitch dev console)
 - `IGDB_CLIENT_SECRET`
 - `STEAM_API_KEY` (steamcommunity.com/dev/apikey)
-- `GEMINI_API_KEY` (Google AI Studio — used for auto-generating community polls)
-- `TMDB_API_KEY` (themoviedb.org — v3 API key for TV show data)
+- `GEMINI_API_KEY` (Google AI Studio — used for auto-generating community polls **and** episode briefings)
+- `TMDB_API_KEY` (themoviedb.org — v3 API key for TV show data, cast, and recommendations)
 
 ## Common Tasks
 
 - **Add a new wiki game to the registry**: Verify IGDB ID via `/api/games/igdb-{id}`, find Fandom wiki subdomain, identify category names that actually contain pages, add entry to `GAME_REGISTRY`
+- **Add a new show to the TV registry**: Find the TMDB ID via `/api/tv/search?q={title}`, find the Fandom wiki subdomain, add entry to `TV_SHOW_REGISTRY` in `src/lib/services/tvRegistry.ts`
 - **Add an icon for a wiki section**: Add a `{ keyword, icon }` entry to `ICON_KEYWORDS` in `src/app/(app)/wiki/[game]/page.tsx`. Order matters — more specific keywords first.
 - **Run a Supabase migration**: Copy SQL from `supabase/migrations/`, paste into Supabase SQL Editor, run
 - **Debug a game detail issue**: Check `/api/games/igdb-{id}` directly to see if IGDB is returning data
+- **Debug a TV show detail**: Check `/api/tv/tmdb-{id}` directly to see the TMDB response shape
+- **Debug the episode briefing**: Hit `/api/tv/briefing?show=...&season=1&episode=1&episodeTitle=Pilot` — errors typically come from Gemini JSON parsing or a missing `GEMINI_API_KEY`
 - **Debug an auto wiki**: Check `/api/wiki-detect?wiki={subdomain}` to see what categories are detected
 - **Build locally**: `npm run build` (delete `.next` first if you hit EPERM errors on Windows OneDrive)
