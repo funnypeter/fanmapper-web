@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import TVShowDetailContent from "./TVShowDetailContent";
-import { fetchPage } from "@/lib/services/fandom";
+import { searchAndFetchPage } from "@/lib/services/fandom";
 
 interface TVShowModalContextType {
   openShow: (showId: string) => void;
@@ -25,7 +25,7 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchPage(wiki, pageTitle).then((data) => {
+    searchAndFetchPage(wiki, pageTitle).then((data) => {
       if (data?.html) {
         let html = data.html;
         html = html.replace(/\s+src="data:image[^"]*"/g, "");

@@ -32,6 +32,29 @@ export async function fetchPage(wiki: string, title: string) {
   };
 }
 
+export async function searchAndFetchPage(wiki: string, query: string) {
+  // Try exact title first
+  const exact = await fetchPage(wiki, query);
+  if (exact) return exact;
+
+  // Search for the page
+  try {
+    const searchData = await fandomApi(wiki, {
+      action: "query",
+      list: "search",
+      srsearch: query,
+      srnamespace: "0",
+      srlimit: "1",
+    });
+    const results = searchData.query?.search ?? [];
+    if (results.length > 0) {
+      return fetchPage(wiki, results[0].title);
+    }
+  } catch {}
+
+  return null;
+}
+
 export async function fetchWikitext(wiki: string, title: string): Promise<string | null> {
   const data = await fandomApi(wiki, {
     action: "query",
