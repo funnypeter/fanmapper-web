@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { findTVWikiConfigByTmdbId } from "@/lib/services/tvRegistry";
+import { findTVWikiConfigByTmdbId, TV_SHOW_REGISTRY } from "@/lib/services/tvRegistry";
 import type { TVDBShowDetail, TVDBEpisode } from "@/lib/services/tvdb";
 import TVGuideArticles from "@/components/TVGuideArticles";
 
@@ -37,13 +37,15 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
   const [hoverRating, setHoverRating] = useState(0);
   const [expandedSeason, setExpandedSeason] = useState<number | null>(null);
   const [checkedEpisodes, setCheckedEpisodes] = useState<Set<string>>(new Set());
+  // Find wiki config for this show
+  const registryMatch = findTVWikiConfigByTmdbId(showId);
+  const wikiKey = registryMatch?.key ?? null;
 
   useEffect(() => {
     async function load() {
       const { data: { user: u } } = await supabase.auth.getUser();
       setUser(u);
 
-      // Fetch show details from TVDB API
       const res = await fetch(`/api/tv/${showId}`);
       if (res.ok) {
         const data = await res.json();
@@ -51,19 +53,16 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
         if (data.seasons?.[0]) setExpandedSeason(data.seasons[0].seasonNumber);
       }
 
-      // Fetch user's show data
       if (u) {
         const { data: us } = await supabase.from("user_shows").select("*").eq("user_id", u.id).eq("show_id", showId).single();
         if (us) { setUserShow(us); setUserRating(us.rating ?? 0); }
 
-        // Load episode progress
-        const wikiKey = findTVWikiConfigByTmdbId(showId)?.key ?? showId;
+        const wikiKey = registryMatch?.key ?? showId;
         const { data: progress } = await supabase.from("tv_wiki_progress").select("page_id").eq("user_id", u.id).eq("show_key", wikiKey);
         if (progress) setCheckedEpisodes(new Set(progress.map((p) => p.page_id)));
       }
 
-      // Also load from localStorage
-      const wikiKey = findTVWikiConfigByTmdbId(showId)?.key ?? showId;
+      const wikiKey = registryMatch?.key ?? showId;
       const local = localStorage.getItem(`tv-progress-${wikiKey}`);
       if (local) {
         const localSet = new Set<string>(JSON.parse(local));
@@ -94,18 +93,18 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
     setSaving(false);
   }
 
-  async function changeStatus(status: string) {
+  const changeStatus = useCallback(async (status: string) => {
     if (!user) return;
     await supabase.from("user_shows").update({ status, updated_at: new Date().toISOString() }).eq("user_id", user.id).eq("show_id", showId);
     setUserShow((prev) => prev ? { ...prev, status } : null);
-  }
+  }, [user, showId, supabase]);
 
-  async function updateRating(r: number) {
+  const updateRating = useCallback(async (r: number) => {
     if (!user || !userShow) return;
     setUserRating(r);
     await supabase.from("user_shows").update({ rating: r, updated_at: new Date().toISOString() }).eq("user_id", user.id).eq("show_id", showId);
     setUserShow((prev) => prev ? { ...prev, rating: r } : null);
-  }
+  }, [user, userShow, showId, supabase]);
 
   async function removeFromLibrary() {
     if (!user) return;
@@ -115,7 +114,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
 
   async function toggleEpisode(ep: TVDBEpisode) {
     const epId = `s${ep.seasonNumber}e${ep.episodeNumber}`;
-    const wikiKey = findTVWikiConfigByTmdbId(showId)?.key ?? showId;
+    const wikiKey = registryMatch?.key ?? showId;
     const newChecked = new Set(checkedEpisodes);
 
     if (newChecked.has(epId)) {
@@ -244,6 +243,21 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
         </div>
       )}
 
+      {/* Track Progress card */}
+      {wikiKey && (
+        <div className="mb-6">
+          <Link href={`/tv/wiki/${wikiKey}`}
+            className="card-glass p-5 flex items-center gap-4 hover:border-primary/30 transition group">
+            <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center text-xl shrink-0">📖</div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm group-hover:text-primary transition">Track Progress</p>
+              <p className="text-xs text-text-muted">Wiki checklists</p>
+            </div>
+            <span className="text-primary">→</span>
+          </Link>
+        </div>
+      )}
+
       {/* Cast */}
       {show.cast.length > 0 && (
         <div className="mb-8">
@@ -274,14 +288,12 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
             )}
           </div>
 
-          {/* Overall progress bar */}
           {totalEpisodes > 0 && (
             <div className="h-2 rounded-full bg-surface-elevated mb-4 overflow-hidden">
               <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.round((watchedEpisodes / totalEpisodes) * 100)}%` }} />
             </div>
           )}
 
-          {/* Season accordions */}
           <div className="space-y-2">
             {show.seasons.map((season) => {
               const isExpanded = expandedSeason === season.seasonNumber;
