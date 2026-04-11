@@ -6,6 +6,7 @@ import type { TVDBShow } from "@/lib/services/tvdb";
 import TVTrendingChats from "@/components/TVTrendingChats";
 import TVPollCarousel from "@/components/TVPollCarousel";
 import { useTVShowModal } from "@/components/TVShowModalContext";
+import { createClient } from "@/lib/supabase/client";
 
 interface MetacriticItem {
   title: string;
@@ -23,6 +24,7 @@ interface NewsItem {
 }
 
 export default function TVDiscoverPage() {
+  const { openShow } = useTVShowModal();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<TVDBShow[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,9 +32,38 @@ export default function TVDiscoverPage() {
   const [metacritic, setMetacritic] = useState<MetacriticItem[]>([]);
   const [trendingShows, setTrendingShows] = useState<{ id: string; title: string; posterUrl: string | null; genre: string | null; year: string | null }[]>([]);
   const [tvguide, setTvguide] = useState<NewsItem[]>([]);
+  const [watching, setWatching] = useState<{ show_id: string; current_season: number; current_episode: number; tv_shows: { title: string; poster_url: string | null } }[]>([]);
+  const [episodeCounts, setEpisodeCounts] = useState<Record<string, number>>({});
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Fetch currently watching shows
+    const supabase = createClient();
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("user_shows")
+        .select("show_id, current_season, current_episode, tv_shows(title, poster_url)")
+        .eq("user_id", user.id)
+        .eq("status", "watching");
+      if (data) {
+        setWatching(data as any);
+        // Fetch episode counts for progress bars
+        const counts: Record<string, number> = {};
+        await Promise.all(
+          (data as any[]).map(async (item: any) => {
+            const { count } = await supabase
+              .from("tv_wiki_progress")
+              .select("*", { count: "exact", head: true })
+              .eq("user_id", user.id)
+              .eq("show_key", item.show_id);
+            counts[item.show_id] = count ?? 0;
+          })
+        );
+        setEpisodeCounts(counts);
+      }
+    })();
     fetch("/api/tv/metacritic").then((r) => r.json()).then((data) => {
       if (Array.isArray(data)) setMetacritic(data);
     }).catch(() => {});
@@ -109,6 +140,44 @@ export default function TVDiscoverPage() {
 
           {/* Trending Chats */}
           <TVTrendingChats />
+
+          {/* Currently Watching */}
+          {watching.length > 0 && (
+            <div className="mb-12">
+              <h3 className="text-xl font-bold mb-2">Currently Watching</h3>
+              <p className="text-text-secondary text-sm mb-5">Pick up where you left off</p>
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                {watching.map((item) => {
+                  const watched = episodeCounts[item.show_id] ?? 0;
+                  return (
+                    <button
+                      key={item.show_id}
+                      onClick={() => openShow(item.show_id)}
+                      className="flex-shrink-0 w-[140px] text-left cursor-pointer group"
+                    >
+                      <div className="relative rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/50 transition-all group-hover:scale-[1.03]">
+                        {item.tv_shows.poster_url ? (
+                          <img src={item.tv_shows.poster_url} alt={item.tv_shows.title} className="w-full aspect-[2/3] object-cover" />
+                        ) : (
+                          <div className="w-full aspect-[2/3] bg-surface-elevated flex items-center justify-center text-3xl">📺</div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                          <p className="font-semibold text-xs leading-tight text-white truncate">{item.tv_shows.title}</p>
+                          <p className="text-[10px] text-white/50 mt-0.5">S{item.current_season} E{item.current_episode}</p>
+                        </div>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="mt-1.5 h-1 rounded-full bg-surface-elevated overflow-hidden">
+                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${watched > 0 ? Math.min(watched * 10, 100) : 5}%` }} />
+                      </div>
+                      <p className="text-[10px] text-text-muted mt-0.5">{watched} episodes watched</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Trending Shows */}
           {trendingShows.length > 0 && (

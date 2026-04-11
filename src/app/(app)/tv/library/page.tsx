@@ -42,6 +42,7 @@ export default function TVLibraryPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState<"recent" | "az" | "rating">("recent");
+  const [episodeCounts, setEpisodeCounts] = useState<Record<string, number>>({});
   const { openShow } = useTVShowModal();
 
   useEffect(() => {
@@ -55,7 +56,22 @@ export default function TVLibraryPage() {
         .select("show_id, status, rating, current_season, current_episode, updated_at, tv_shows(title, poster_url, genres, network)")
         .eq("user_id", user.id);
 
-      if (data) setShows(data as unknown as TVShowItem[]);
+      if (data) {
+        setShows(data as unknown as TVShowItem[]);
+        // Fetch episode watch counts
+        const counts: Record<string, number> = {};
+        await Promise.all(
+          (data as any[]).map(async (item: any) => {
+            const { count } = await supabase
+              .from("tv_wiki_progress")
+              .select("*", { count: "exact", head: true })
+              .eq("user_id", user.id)
+              .eq("show_key", item.show_id);
+            counts[item.show_id] = count ?? 0;
+          })
+        );
+        setEpisodeCounts(counts);
+      }
       setLoading(false);
     }
     load();
@@ -127,33 +143,44 @@ export default function TVLibraryPage() {
 
       {/* Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {sorted.map((item) => (
-          <button
-            key={item.show_id}
-            onClick={() => openShow(item.show_id)}
-            className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] text-left cursor-pointer"
-          >
-            {item.tv_shows.poster_url ? (
-              <img src={item.tv_shows.poster_url} alt={item.tv_shows.title} className="w-full aspect-[2/3] object-cover" />
-            ) : (
-              <div className="w-full aspect-[2/3] bg-surface-elevated flex items-center justify-center text-3xl">📺</div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+        {sorted.map((item) => {
+          const watched = episodeCounts[item.show_id] ?? 0;
+          return (
+            <div key={item.show_id}>
+              <button
+                onClick={() => openShow(item.show_id)}
+                className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] text-left cursor-pointer w-full"
+              >
+                {item.tv_shows.poster_url ? (
+                  <img src={item.tv_shows.poster_url} alt={item.tv_shows.title} className="w-full aspect-[2/3] object-cover" />
+                ) : (
+                  <div className="w-full aspect-[2/3] bg-surface-elevated flex items-center justify-center text-3xl">📺</div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-            {/* Status badge */}
-            <div className="absolute top-2 right-2">
-              <div className={`w-3 h-3 rounded-full ${STATUS_COLORS[item.status] ?? "bg-border"}`} />
-            </div>
+                {/* Status badge */}
+                <div className="absolute top-2 right-2">
+                  <div className={`w-3 h-3 rounded-full ${STATUS_COLORS[item.status] ?? "bg-border"}`} />
+                </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-2.5">
-              <p className="font-semibold text-xs leading-tight text-white">{item.tv_shows.title}</p>
-              <p className="text-[10px] text-white/50 mt-0.5">
-                S{item.current_season} E{item.current_episode}
-                {item.rating ? ` · ${"★".repeat(item.rating)}` : ""}
-              </p>
+                <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                  <p className="font-semibold text-xs leading-tight text-white">{item.tv_shows.title}</p>
+                  <p className="text-[10px] text-white/50 mt-0.5">
+                    S{item.current_season} E{item.current_episode}
+                    {item.rating ? ` · ${"★".repeat(item.rating)}` : ""}
+                  </p>
+                </div>
+              </button>
+              {/* Progress bar */}
+              <div className="mt-1.5 h-1 rounded-full bg-surface-elevated overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${
+                  item.status === "completed" ? "bg-success" : "bg-primary"
+                }`} style={{ width: `${item.status === "completed" ? 100 : watched > 0 ? Math.min(watched * 10, 95) : 3}%` }} />
+              </div>
+              <p className="text-[10px] text-text-muted mt-0.5">{item.status === "completed" ? "Completed" : `${watched} eps watched`}</p>
             </div>
-          </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
