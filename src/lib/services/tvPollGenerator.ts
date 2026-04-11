@@ -88,12 +88,18 @@ Return ONLY a JSON array with no other text, in this exact format:
 
     const polls: GeminiPoll[] = JSON.parse(jsonMatch[0]);
 
+    // Fetch all posters in parallel
+    const posters = await Promise.all(
+      polls.map((poll) => searchShowPoster(poll.showHint))
+    );
+
     const supabase = await createServerClient();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const errors: string[] = [];
-    for (const poll of polls) {
-      const imageUrl = await searchShowPoster(poll.showHint);
+    for (let i = 0; i < polls.length; i++) {
+      const poll = polls[i];
+      const imageUrl = posters[i];
 
       const { error } = await supabase.from("polls").insert({
         question: poll.question,
