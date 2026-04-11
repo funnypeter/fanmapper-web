@@ -111,10 +111,12 @@ Return ONLY a JSON array with no other text, in this exact format:
     }
 
     const geminiData = await geminiRes.json();
-    const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    // Gemini 2.5 may return multiple parts (thinking + text) — concatenate all text parts
+    const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
+    const rawText = parts.map((p: { text?: string }) => p.text ?? "").join("\n");
 
-    const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return { success: false, error: `Failed to parse Gemini response: ${rawText.substring(0, 200)}` };
+    const jsonMatch = rawText.match(/\[[\s\S]*?\](?=\s*```|\s*$)/);
+    if (!jsonMatch) return { success: false, error: `Failed to parse Gemini response: ${rawText.substring(0, 300)}` };
 
     const polls: GeminiPoll[] = JSON.parse(jsonMatch[0]);
 
