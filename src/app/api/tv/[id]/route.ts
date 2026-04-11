@@ -16,7 +16,10 @@ async function getToken(): Promise<string> {
     body: JSON.stringify({ apikey: apiKey }),
   });
 
-  if (!res.ok) throw new Error("TVDB login failed");
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`TVDB login ${res.status}: ${errText}`);
+  }
   const data = await res.json();
   accessToken = data.data.token;
   tokenExpiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
