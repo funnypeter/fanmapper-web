@@ -61,38 +61,62 @@ export async function GET() {
 
     if (parsed.length === 0) return NextResponse.json([]);
 
-    // Batch search IGDB for cover art
+    // Fetch IGDB covers + Metacritic scores in parallel for each game
     const token = await getIGDBToken();
     const items: MetacriticItem[] = [];
 
-    // Search all titles in parallel
-    const coverPromises = parsed.map(async (item) => {
-      try {
-        const igdbRes = await fetch(`${IGDB_BASE}/games`, {
-          method: "POST",
-          headers: {
-            "Client-ID": process.env.IGDB_CLIENT_ID!,
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-            "Content-Type": "text/plain",
-          },
-          body: `search "${item.title.replace(/"/g, '\\"')}"; fields cover.url,total_rating; limit 1;`,
-        });
+    const enrichPromises = parsed.map(async (item) => {
+      // Fetch cover art from IGDB and score from Metacritic page in parallel
+      const [coverResult, scoreResult] = await Promise.all([
+        // IGDB cover art
+        (async () => {
+          try {
+            const igdbRes = await fetch(`${IGDB_BASE}/games`, {
+              method: "POST",
+              headers: {
+                "Client-ID": process.env.IGDB_CLIENT_ID!,
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+                "Content-Type": "text/plain",
+              },
+              body: `search "${item.title.replace(/"/g, '\\"')}"; fields cover.url; limit 1;`,
+            });
+            if (!igdbRes.ok) return null;
+            const results = await igdbRes.json();
+            const url = results[0]?.cover?.url;
+            return url ? `https:${url.replace("t_thumb", "t_cover_big")}` : null;
+          } catch {
+            return null;
+          }
+        })(),
+        // Metacritic score from the game page
+        (async () => {
+          try {
+            const pageRes = await fetch(item.link, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              },
+            });
+            if (!pageRes.ok) return null;
+            const html = await pageRes.text();
+            // Try multiple patterns Metacritic uses for the score
+            const scoreMatch =
+              html.match(/"score"\s*:\s*(\d+)/) ??
+              html.match(/metascore_w[^>]*>(\d+)</) ??
+              html.match(/ratingValue[^>]*>(\d+)</) ??
+              html.match(/"ratingValue"\s*:\s*"?(\d+)"?/) ??
+              html.match(/c-siteReviewScore[^>]*>[\s\S]*?<span>(\d+)<\/span>/);
+            return scoreMatch ? parseInt(scoreMatch[1]) : null;
+          } catch {
+            return null;
+          }
+        })(),
+      ]);
 
-        if (!igdbRes.ok) return { ...item, image: null, score: null };
-        const results = await igdbRes.json();
-        const game = results[0];
-        const image = game?.cover?.url
-          ? `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
-          : null;
-        const score = game?.total_rating ? Math.round(game.total_rating) : null;
-        return { ...item, image, score };
-      } catch {
-        return { ...item, image: null, score: null };
-      }
+      return { ...item, image: coverResult, score: scoreResult };
     });
 
-    const results = await Promise.all(coverPromises);
+    const results = await Promise.all(enrichPromises);
     items.push(...results);
 
     return NextResponse.json(items);
