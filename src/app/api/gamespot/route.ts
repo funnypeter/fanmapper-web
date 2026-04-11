@@ -1,8 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 
-interface GeminiArticle {
+interface NewsItem {
   title: string;
-  url: string;
+  link: string;
+  image: string | null;
+  pubDate: string;
+}
+
+function decodeHtml(html: string): string {
+  return html.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&#x27;/g, "'");
+}
+
+async function fetchGameSpotRSS(): Promise<NewsItem[]> {
+  try {
+    const res = await fetch("https://www.gamespot.com/feeds/mashup/", { next: { revalidate: 1800 } });
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 40);
+
+    return items.map((match) => {
+      const content = match[1];
+      const title = decodeHtml(content.match(/<title><!\[CDATA\[(.*?)\]\]>/)?.[1] ?? content.match(/<title>(.*?)<\/title>/)?.[1] ?? "");
+      const link = content.match(/<link>(.*?)<\/link>/)?.[1] ?? "";
+      const image = content.match(/url="([^"]+)"/)?.[1]
+        ?? content.match(/<media:thumbnail[^>]*url="([^"]+)"/)?.[1]
+        ?? null;
+      const pubDate = content.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "";
+      return { title, link, image, pubDate };
+    }).filter((n) => n.title);
+  } catch {
+    return [];
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -10,9 +38,15 @@ export async function GET(request: NextRequest) {
   if (!gameTitle) return NextResponse.json([]);
 
   const geminiKey = process.env.GEMINI_API_KEY;
+  const articles = await fetchGameSpotRSS();
+  if (articles.length === 0) return NextResponse.json([]);
+
   if (!geminiKey) return NextResponse.json([]);
 
   try {
+    // Give Gemini the real article titles and ask it to pick the relevant ones
+    const titleList = articles.map((a, i) => `${i}: ${a.title}`).join("\n");
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
       {
@@ -21,13 +55,10 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Give me 5 GameSpot articles that someone interested in the game "${gameTitle}" would want to read. These should be real, recent GameSpot articles about this game or closely related games.
-
-Return ONLY a JSON array, no other text:
-[{"title": "Article title", "url": "https://www.gamespot.com/..."}]`,
+              text: `Here are today's GameSpot articles:\n\n${titleList}\n\nWhich of these articles would someone interested in the game "${gameTitle}" want to read? Pick up to 5 that are most relevant — they can be about this game, its franchise, genre, developer, or similar games.\n\nReturn ONLY a JSON array of the index numbers, no other text. Example: [0, 3, 7, 12, 15]`,
             }],
           }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.3, maxOutputTokens: 256 },
         }),
       }
     );
@@ -41,34 +72,20 @@ Return ONLY a JSON array, no other text:
     const jsonMatch = stripped.match(/\[[\s\S]*\]/);
     if (!jsonMatch) return NextResponse.json([]);
 
-    const articles: GeminiArticle[] = JSON.parse(jsonMatch[0]);
+    const indices: number[] = JSON.parse(jsonMatch[0]);
 
-    // Fetch OG images from each article page in parallel
-    const withImages = await Promise.all(
-      articles.slice(0, 5).map(async (a) => {
-        let image: string | null = null;
-        try {
-          const pageRes = await fetch(a.url, {
-            headers: { "User-Agent": "Mozilla/5.0 (compatible; FanMapper/1.0)" },
-          });
-          if (pageRes.ok) {
-            const html = await pageRes.text();
-            const ogImage = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/)?.[1]
-              ?? html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:image"/)?.[1];
-            if (ogImage) image = ogImage;
-          }
-        } catch { /* skip */ }
-        return {
-          title: a.title,
-          link: a.url,
-          image,
-          source: "GameSpot",
-          pubDate: new Date().toISOString(),
-        };
-      })
-    );
+    const selected = indices
+      .filter((i) => i >= 0 && i < articles.length)
+      .slice(0, 5)
+      .map((i) => ({
+        title: articles[i].title,
+        link: articles[i].link,
+        image: articles[i].image,
+        source: "GameSpot",
+        pubDate: articles[i].pubDate,
+      }));
 
-    return NextResponse.json(withImages);
+    return NextResponse.json(selected);
   } catch {
     return NextResponse.json([]);
   }
