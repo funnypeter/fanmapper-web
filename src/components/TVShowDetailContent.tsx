@@ -28,7 +28,7 @@ const STATUSES = [
 export default function TVShowDetailContent({ showId }: { showId: string }) {
   const router = useRouter();
   const supabase = createClient();
-  const { openWikiArticle } = useTVShowModal();
+  const { openWikiArticle, openBriefing } = useTVShowModal();
 
   const [show, setShow] = useState<TVDBShowDetail | null>(null);
   const [userShow, setUserShow] = useState<UserShowData | null>(null);
@@ -395,6 +395,19 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                                 {ep.runtime && <span className="text-[10px] text-text-muted">· {ep.runtime}min</span>}
                                 {wikiSubdomain && <span className="text-[10px] text-primary">View wiki →</span>}
                               </div>
+                            </button>
+
+                            <button
+                              onClick={() => show && openBriefing({
+                                showTitle: show.title,
+                                season: ep.seasonNumber,
+                                episode: ep.episodeNumber,
+                                episodeTitle: ep.title,
+                              })}
+                              className="shrink-0 w-8 h-8 rounded-lg bg-accent/10 hover:bg-accent/20 flex items-center justify-center transition"
+                              title="Episode Briefing"
+                            >
+                              <span className="text-sm">📋</span>
                             </button>
                           </div>
                         );
