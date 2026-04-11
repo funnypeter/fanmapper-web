@@ -97,9 +97,6 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
     function handlePopState() {
       if (wikiView) {
         setWikiView(null);
-        requestAnimationFrame(() => {
-          if (scrollRef.current) scrollRef.current.scrollTop = savedScrollPos.current;
-        });
       } else if (activeShowId) {
         setActiveShowId(null);
         document.body.style.overflow = "";
@@ -131,22 +128,25 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
               </button>
             </div>
 
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-              {wikiView ? (
+            {/* Detail view — always mounted, hidden when wiki is open */}
+            <div
+              ref={scrollRef}
+              className="flex-1 overflow-y-auto px-4 sm:px-6 py-4"
+              style={{ display: wikiView ? "none" : undefined }}
+            >
+              <TVShowDetailContent showId={activeShowId} />
+            </div>
+
+            {/* Wiki view — only mounted when open */}
+            {wikiView && (
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
                 <WikiArticleView
                   wiki={wikiView.wiki}
                   pageTitle={wikiView.page}
-                  onBack={() => {
-                    setWikiView(null);
-                    requestAnimationFrame(() => {
-                      if (scrollRef.current) scrollRef.current.scrollTop = savedScrollPos.current;
-                    });
-                  }}
+                  onBack={() => setWikiView(null)}
                 />
-              ) : (
-                <TVShowDetailContent showId={activeShowId} />
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
