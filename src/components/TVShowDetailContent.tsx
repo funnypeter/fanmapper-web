@@ -336,8 +336,14 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                               <img src={ep.image} alt="" className="w-16 h-10 rounded object-cover shrink-0" />
                             )}
 
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-sm font-medium truncate ${isChecked ? "text-text-muted line-through" : ""}`}>
+                            <a
+                              href={wikiKey ? `/tv/wiki/${wikiKey}/${encodeURIComponent(ep.title)}` : undefined}
+                              onClick={(e) => {
+                                if (!wikiKey) { e.preventDefault(); return; }
+                              }}
+                              className={`flex-1 min-w-0 ${wikiKey ? "cursor-pointer" : ""}`}
+                            >
+                              <p className={`text-sm font-medium truncate ${isChecked ? "text-text-muted line-through" : ""} ${wikiKey ? "hover:text-primary transition" : ""}`}>
                                 <span className="text-text-muted mr-1">E{ep.episodeNumber}</span>
                                 {ep.title}
                               </p>
@@ -345,7 +351,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                                 {ep.aired && <span className="text-[10px] text-text-muted">{ep.aired}</span>}
                                 {ep.runtime && <span className="text-[10px] text-text-muted">· {ep.runtime}min</span>}
                               </div>
-                            </div>
+                            </a>
                           </div>
                         );
                       })}
