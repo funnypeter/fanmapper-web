@@ -115,8 +115,10 @@ Return ONLY a JSON array with no other text, in this exact format:
     const parts = geminiData.candidates?.[0]?.content?.parts ?? [];
     const rawText = parts.map((p: { text?: string }) => p.text ?? "").join("\n");
 
-    const jsonMatch = rawText.match(/\[[\s\S]*?\](?=\s*```|\s*$)/);
-    if (!jsonMatch) return { success: false, error: `Failed to parse Gemini response: ${rawText.substring(0, 300)}` };
+    // Strip markdown code fences if present
+    const stripped = rawText.replace(/```json\s*/g, "").replace(/```/g, "").trim();
+    const jsonMatch = stripped.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return { success: false, error: `Failed to parse Gemini response: ${stripped.substring(0, 300)}` };
 
     const polls: GeminiPoll[] = JSON.parse(jsonMatch[0]);
 
