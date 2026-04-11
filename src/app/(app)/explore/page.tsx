@@ -13,6 +13,13 @@ interface NewsItem {
   source: string;
   pubDate: string;
 }
+
+interface MetacriticItem {
+  title: string;
+  score: number | null;
+  image: string | null;
+  link: string;
+}
 import type { IGDBGame } from "@/lib/services/igdb";
 
 import { GAME_REGISTRY } from "@/lib/services/gameRegistry";
@@ -31,11 +38,15 @@ export default function ExplorePage() {
   const [results, setResults] = useState<IGDBGame[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [gamespot, setGamespot] = useState<NewsItem[]>([]);
+  const [metacritic, setMetacritic] = useState<MetacriticItem[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    fetch("/api/news").then((r) => r.json()).then(setNews).catch(() => {});
+    fetch("/api/news").then((r) => r.json()).then((items: NewsItem[]) => {
+      setGamespot(items.filter((n) => n.source === "GameSpot").slice(0, 10));
+    }).catch(() => {});
+    fetch("/api/metacritic").then((r) => r.json()).then(setMetacritic).catch(() => {});
   }, []);
 
   function handleInput(value: string) {
@@ -126,33 +137,89 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          {/* Gaming News */}
-          {news.length > 0 && (
+          {/* Trending on Metacritic */}
+          {metacritic.length > 0 && (
             <div className="mb-12">
-              <h3 className="text-xl font-bold mb-2">Gaming News</h3>
-              <p className="text-text-secondary text-sm mb-5">Latest from GameSpot, IGN, and Kotaku</p>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {news.map((item, i) => (
+              <div className="flex items-center gap-2.5 mb-5">
+                <span className="text-lg font-bold text-text-secondary">Trending on</span>
+                <svg viewBox="0 0 120 24" className="h-5" fill="none">
+                  <rect width="24" height="24" rx="4" fill="#FFCC34" />
+                  <text x="12" y="17" textAnchor="middle" fill="#000" fontSize="14" fontWeight="bold">M</text>
+                  <text x="36" y="18" fill="#FFCC34" fontSize="16" fontWeight="bold">metacritic</text>
+                </svg>
+              </div>
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                {metacritic.map((item, i) => (
                   <a
                     key={i}
                     href={item.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="card-glass overflow-hidden hover:border-primary/30 transition group"
+                    className="flex-shrink-0 w-[200px] card-glass overflow-hidden hover:border-primary/30 transition group"
                   >
-                    {item.image && (
-                      <img src={item.image} alt="" className="w-full h-40 object-cover" />
+                    {item.image ? (
+                      <img src={item.image} alt="" className="w-full h-28 object-cover" />
+                    ) : (
+                      <div className="w-full h-28 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">
+                        🎮
+                      </div>
                     )}
-                    <div className="p-4">
-                      <p className="font-semibold text-sm leading-tight group-hover:text-primary transition line-clamp-2">
+                    <div className="p-3">
+                      <p className="font-semibold text-xs leading-tight group-hover:text-primary transition line-clamp-2">
                         {item.title}
                       </p>
-                      <div className="flex items-center justify-between mt-3">
-                        <span className="text-xs text-primary font-medium">{item.source}</span>
-                        <span className="text-xs text-text-muted">
-                          {new Date(item.pubDate).toLocaleDateString()}
-                        </span>
+                      {item.score !== null && (
+                        <div className="mt-2">
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
+                            item.score >= 75 ? "bg-success/20 text-success" :
+                            item.score >= 50 ? "bg-warning/20 text-warning" :
+                            "bg-error/20 text-error"
+                          }`}>
+                            {item.score}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Trending on GameSpot */}
+          {gamespot.length > 0 && (
+            <div className="mb-12">
+              <div className="flex items-center gap-2.5 mb-5">
+                <span className="text-lg font-bold text-text-secondary">Trending on</span>
+                <svg viewBox="0 0 120 24" className="h-5" fill="none">
+                  <rect width="24" height="24" rx="4" fill="#E50914" />
+                  <text x="12" y="17" textAnchor="middle" fill="#fff" fontSize="14" fontWeight="bold">G</text>
+                  <text x="36" y="18" fill="#E50914" fontSize="16" fontWeight="bold">GameSpot</text>
+                </svg>
+              </div>
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+                {gamespot.map((item, i) => (
+                  <a
+                    key={i}
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 w-[220px] card-glass overflow-hidden hover:border-primary/30 transition group"
+                  >
+                    {item.image ? (
+                      <img src={item.image} alt="" className="w-full h-32 object-cover" />
+                    ) : (
+                      <div className="w-full h-32 bg-surface-elevated flex items-center justify-center text-text-muted text-2xl">
+                        📰
                       </div>
+                    )}
+                    <div className="p-3">
+                      <p className="font-semibold text-xs leading-tight group-hover:text-primary transition line-clamp-2">
+                        {item.title}
+                      </p>
+                      <span className="text-[10px] text-text-muted mt-2 block">
+                        {new Date(item.pubDate).toLocaleDateString()}
+                      </span>
                     </div>
                   </a>
                 ))}
