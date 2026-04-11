@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import { searchGames } from "@/lib/services/igdb";
 import AchievementCelebration from "@/components/AchievementCelebration";
 import PollCarousel from "@/components/PollCarousel";
 import TrendingChats from "@/components/TrendingChats";
+import { useGameModal } from "@/components/GameModalContext";
 
 interface NewsItem {
   title: string;
@@ -225,10 +225,12 @@ export default function ExplorePage() {
 }
 
 function GameCard({ id, title, cover, genre, year }: { id: string; title: string; cover: string | null; genre?: string; year?: string }) {
+  const { openGame } = useGameModal();
+
   return (
-    <Link
-      href={`/game/${id}`}
-      className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10"
+    <button
+      onClick={() => openGame(id)}
+      className="group relative rounded-xl overflow-hidden border border-border/50 hover:border-primary/50 transition-all hover:scale-[1.03] hover:shadow-xl hover:shadow-primary/10 text-left w-full cursor-pointer"
     >
       {cover ? (
         <img src={cover} alt={title} className="w-full aspect-[3/4] object-cover" />
@@ -246,6 +248,6 @@ function GameCard({ id, title, cover, genre, year }: { id: string; title: string
           </p>
         )}
       </div>
-    </Link>
+    </button>
   );
 }
