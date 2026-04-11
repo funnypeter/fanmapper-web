@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface ChatMessage {
   user: string;
@@ -105,32 +105,30 @@ const CHAT_ROOMS: ChatRoom[] = [
   },
 ];
 
-function LiveChat({ room }: { room: ChatRoom }) {
+function useAnimatedChat(messages: ChatMessage[], maxVisible: number) {
   const [visibleMessages, setVisibleMessages] = useState<ChatMessage[]>([]);
   const [index, setIndex] = useState(0);
   const chatRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Start with first 3 messages
-    setVisibleMessages(room.messages.slice(0, 3));
+    setVisibleMessages(messages.slice(0, Math.min(3, maxVisible)));
     setIndex(3);
-  }, [room.messages]);
+  }, [messages, maxVisible]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prev) => {
-        const next = prev % room.messages.length;
+        const next = prev % messages.length;
         setVisibleMessages((msgs) => {
-          const updated = [...msgs, room.messages[next]];
-          // Keep last 6 visible
-          return updated.slice(-6);
+          const updated = [...msgs, messages[next]];
+          return updated.slice(-maxVisible);
         });
         return prev + 1;
       });
-    }, 2000 + Math.random() * 1500); // Stagger timing per card
+    }, 2000 + Math.random() * 1500);
 
     return () => clearInterval(interval);
-  }, [room.messages]);
+  }, [messages, maxVisible]);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -138,8 +136,17 @@ function LiveChat({ room }: { room: ChatRoom }) {
     }
   }, [visibleMessages]);
 
+  return { visibleMessages, chatRef };
+}
+
+function LiveChat({ room, onSelect }: { room: ChatRoom; onSelect: (room: ChatRoom) => void }) {
+  const { visibleMessages, chatRef } = useAnimatedChat(room.messages, 6);
+
   return (
-    <div className="flex-shrink-0 w-[260px] card-glass overflow-hidden hover:border-primary/30 transition group">
+    <button
+      onClick={() => onSelect(room)}
+      className="flex-shrink-0 w-[260px] card-glass overflow-hidden hover:border-primary/30 transition group text-left cursor-pointer"
+    >
       {/* Header */}
       <div className="px-3 py-2.5 border-b border-border/50 bg-surface-elevated/50">
         <div className="flex items-center justify-between">
@@ -166,11 +173,104 @@ function LiveChat({ room }: { room: ChatRoom }) {
           </div>
         ))}
       </div>
+    </button>
+  );
+}
+
+function ChatModal({ room, onClose }: { room: ChatRoom; onClose: () => void }) {
+  const { visibleMessages, chatRef } = useAnimatedChat(room.messages, 20);
+  const [inputValue, setInputValue] = useState("");
+  const [userMessages, setUserMessages] = useState<ChatMessage[]>([]);
+  const allMessages = [...visibleMessages, ...userMessages];
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages.length]);
+
+  const handleSend = useCallback(() => {
+    if (!inputValue.trim()) return;
+    setUserMessages((prev) => [
+      ...prev,
+      { user: "You", text: inputValue.trim(), color: "#A29BFE" },
+    ]);
+    setInputValue("");
+  }, [inputValue]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+      <div
+        className="relative w-full max-w-lg h-[80vh] max-h-[600px] rounded-2xl overflow-hidden border border-border bg-surface flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-4 py-3 border-b border-border bg-surface-elevated flex items-center justify-between flex-shrink-0">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-accent uppercase tracking-wider">{room.game}</span>
+              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-error/10">
+                <div className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" />
+                <span className="text-[10px] font-semibold text-error uppercase">Live</span>
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-foreground mt-0.5">{room.title}</h3>
+            <p className="text-xs text-text-muted">{room.viewers.toLocaleString()} watching</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-text-muted hover:text-foreground transition text-2xl leading-none p-1"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div
+          ref={chatRef}
+          className="flex-1 overflow-y-auto px-4 py-3 space-y-2"
+        >
+          {allMessages.map((msg, i) => (
+            <div key={`${msg.user}-${i}`} className="animate-fade-in">
+              <span className="text-sm">
+                <span className="font-semibold" style={{ color: msg.color }}>{msg.user}</span>
+                <span className="text-text-secondary ml-1.5">{msg.text}</span>
+              </span>
+            </div>
+          ))}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div className="px-4 py-3 border-t border-border bg-surface-elevated flex-shrink-0">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              placeholder="Send a message..."
+              className="flex-1 rounded-xl bg-surface border border-border px-4 py-2.5 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/25 transition"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!inputValue.trim()}
+              className="btn-primary px-4 py-2.5 rounded-xl text-sm"
+            >
+              Chat
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function TrendingChats() {
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
+
   return (
     <div className="mb-10">
       <div className="flex items-center gap-2 mb-5">
@@ -182,9 +282,13 @@ export default function TrendingChats() {
       </div>
       <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
         {CHAT_ROOMS.map((room) => (
-          <LiveChat key={room.title} room={room} />
+          <LiveChat key={room.title} room={room} onSelect={setSelectedRoom} />
         ))}
       </div>
+
+      {selectedRoom && (
+        <ChatModal room={selectedRoom} onClose={() => setSelectedRoom(null)} />
+      )}
     </div>
   );
 }
