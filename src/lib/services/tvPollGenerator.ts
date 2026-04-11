@@ -44,26 +44,24 @@ export async function generateTVPolls(): Promise<{ success: boolean; error?: str
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `Based on TV and streaming trends this week (April 2026), generate exactly 4 topical poll questions for a TV fan community app.
+              text: `Generate exactly 4 poll questions about REAL TV shows for a TV fan community app.
 
-Types of questions to choose from:
-- Best show of the season / year
-- Character vs character matchups
-- Predictions about renewals, cancellations, or upcoming seasons
-- Streaming platform debates (Netflix vs HBO vs Disney+ vs Apple TV+)
-- "What would you rather watch" scenarios
-- Best performance, best twist, best finale
-- Adaptation opinions (book vs show, game vs show)
+IMPORTANT: Only reference REAL TV shows that actually exist. Do NOT invent fictional show names. Use shows like: House of the Dragon, Severance, The Last of Us, Stranger Things, The Boys, Squid Game, The Bear, Wednesday, Arcane, Fallout, Shogun, The Mandalorian, Andor, Breaking Bad, Game of Thrones, Yellowjackets, The White Lotus, Succession, Ted Lasso, Euphoria, The Penguin, Dune Prophecy, or other real shows.
+
+Types of questions:
+- Which real show is better: X vs Y
+- Best character performance in a real show
+- Predictions about a real show's next season
+- Streaming platform debates
+- Best show in a genre this year
 
 Rules:
 - Each poll must have 2-4 options
 - Keep questions concise and engaging
-- Reference real TV shows, actors, and streaming events
-- Make them feel timely and relevant
-- Each poll should have a showHint field with a single TV show title that best represents the poll topic (for fetching poster artwork)
+- The showHint MUST be a real TV show name that exists on TMDB (e.g. "House of the Dragon", not a made-up name)
 
-Return ONLY a JSON array with no other text, in this exact format:
-[{"question": "...", "options": ["A", "B"], "showHint": "Show Title"}]`,
+Return ONLY a JSON array with no other text:
+[{"question": "...", "options": ["A", "B"], "showHint": "Real Show Title"}]`,
             }],
           }],
           generationConfig: {
