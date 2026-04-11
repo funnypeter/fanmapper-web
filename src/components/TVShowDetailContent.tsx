@@ -106,9 +106,9 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
         }, { onConflict: "id" });
       }
       const { error } = await supabase.from("user_shows").upsert({
-        user_id: user.id, show_id: showId, status: "backlog", updated_at: new Date().toISOString(),
+        user_id: user.id, show_id: showId, status: "watching", updated_at: new Date().toISOString(),
       }, { onConflict: "user_id,show_id" });
-      if (!error) setUserShow({ status: "backlog", rating: null, review: null, current_season: 1, current_episode: 0 });
+      if (!error) setUserShow({ status: "watching", rating: null, review: null, current_season: 1, current_episode: 0 });
     } catch {}
     setSaving(false);
   }
