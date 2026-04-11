@@ -21,7 +21,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "severance": {
     showTitle: "Severance",
     wiki: "severance-tv",
-    poster: "https://image.tmdb.org/t/p/w500/pBal2dHMFnp0EGOvFbv8mJAIG4M.jpg",
+    poster: "https://image.tmdb.org/t/p/w500/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg",
     tvdbId: "tvdb-371980",
     genre: "Thriller",
     network: "Apple TV+",
@@ -57,7 +57,7 @@ export const TV_SHOW_REGISTRY: Record<string, TVShowConfig> = {
   "the-mandalorian": {
     showTitle: "The Mandalorian",
     wiki: "starwars",
-    poster: "https://image.tmdb.org/t/p/w500/eU1i6eHXlzMOlEq0ku1Bry4MOqv.jpg",
+    poster: "https://image.tmdb.org/t/p/w500/sWgBv7LV2PRoQgkxwlibdGXKz1S.jpg",
     tvdbId: "tvdb-361753",
     genre: "Sci-Fi",
     network: "Disney+",
