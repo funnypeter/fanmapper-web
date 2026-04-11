@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -17,25 +18,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
             <TopNav isLoggedIn={!!user} />
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {user ? (
-              <Link href="/profile" className="text-text-muted hover:text-foreground transition">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </Link>
-            ) : (
-              <Link href="/auth/login" className="btn-primary text-sm px-4 py-2">
-                Sign In
-              </Link>
-            )}
-          </div>
+          {!user && (
+            <Link href="/auth/login" className="btn-primary text-sm px-4 py-2 flex-shrink-0">
+              Sign In
+            </Link>
+          )}
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 pb-24">
         <div className="max-w-6xl mx-auto px-6 py-8">{children}</div>
       </main>
+
+      <BottomNav />
     </div>
   );
 }
