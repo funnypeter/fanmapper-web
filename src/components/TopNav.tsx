@@ -41,7 +41,11 @@ export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
     <nav className="w-full border-b border-border/30 bg-background/80 backdrop-blur-xl">
       <div className="max-w-6xl mx-auto flex">
         {visibleTabs.map((tab) => {
-          const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
+          // For base tabs like /tv and /explore, only exact match (not /tv/library)
+          const isBase = tab.href === "/tv" || tab.href === "/explore";
+          const isActive = isBase
+            ? pathname === tab.href
+            : pathname === tab.href || pathname.startsWith(tab.href + "/");
           return (
             <Link
               key={tab.href}
