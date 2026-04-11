@@ -404,10 +404,9 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                                 episode: ep.episodeNumber,
                                 episodeTitle: ep.title,
                               })}
-                              className="shrink-0 w-8 h-8 rounded-lg bg-accent/10 hover:bg-accent/20 flex items-center justify-center transition"
-                              title="Episode Briefing"
+                              className="shrink-0 px-2 py-1 rounded-lg bg-accent/15 hover:bg-accent/25 text-accent text-[10px] font-semibold transition"
                             >
-                              <span className="text-sm">📋</span>
+                              Briefing
                             </button>
                           </div>
                         );

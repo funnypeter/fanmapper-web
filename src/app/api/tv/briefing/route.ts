@@ -24,16 +24,15 @@ export async function GET(request: NextRequest) {
             parts: [{
               text: `I'm about to watch "${show}" Season ${season}, Episode ${episode}${episodeTitle ? ` ("${episodeTitle}")` : ""}.
 
-Give me a spoiler-free episode briefing. DO NOT reveal any plot points, twists, deaths, or surprises from this episode. Only cover what I need to know BEFORE watching.
+Give me a spoiler-free episode briefing. DO NOT reveal any plot points, twists, deaths, or surprises from THIS episode. Only cover what happened BEFORE this episode.
 
 Respond in this exact JSON format:
 {
-  "recap": "A brief spoiler-free recap of what happened in previous episodes leading up to this one. What storylines are in play? What conflicts are unresolved? (2-3 sentences)",
-  "characters": ["Character Name - brief reminder of who they are and their current situation (1 sentence each)"],
-  "whatToExpect": "The tone and themes of this episode without spoiling anything. Is it action-heavy, dialogue-driven, emotional? Any content warnings? (1-2 sentences)"
+  "recap": "A detailed recap of what happened in the episodes leading up to this one. Cover the key plot points, major events, and important revelations from previous episodes that are relevant to understanding this episode. Be specific about what happened — names, events, decisions — but ONLY from previous episodes, never from this one. (4-6 sentences)",
+  "characters": ["Character Name - where we last left this character, what they were doing, and what their current motivations are heading into this episode (1-2 sentences each)"]
 }
 
-Return ONLY the JSON, no other text.`,
+Include 4-6 key characters. Return ONLY the JSON, no other text.`,
             }],
           }],
           generationConfig: { temperature: 0.5, maxOutputTokens: 4096 },
