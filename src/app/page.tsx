@@ -38,7 +38,7 @@ export default function LandingPage() {
       <header className="flex items-center justify-between px-6 md:px-12 py-4 border-b border-border/50 backdrop-blur sticky top-0 z-50 bg-background/80">
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <img src="/icon-192.png" alt="" className="h-8 w-8" />
-          Fan<span className="text-primary">Companion</span>
+          <span><span className="text-yellow-400">Fan</span><span className="text-primary">Companion</span></span>
         </h1>
         <div className="flex items-center gap-4">
           <Link href="/auth/login" className="text-sm text-text-secondary hover:text-foreground transition">
@@ -140,7 +140,7 @@ export default function LandingPage() {
       <footer className="border-t border-border/50 px-6 md:px-12 py-8">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-6">
-            <span className="font-bold">Fan<span className="text-primary">Companion</span></span>
+            <span className="font-bold"><span className="text-yellow-400">Fan</span><span className="text-primary">Companion</span></span>
             <Link href="/explore" className="text-sm text-text-muted hover:text-foreground transition">Explore</Link>
             <a href="https://github.com/funnypeter/fanmapper-web" className="text-sm text-text-muted hover:text-foreground transition">GitHub</a>
           </div>
