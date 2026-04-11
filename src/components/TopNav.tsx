@@ -21,23 +21,28 @@ export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const visibleTabs = TABS.filter((tab) => !tab.requiresAuth || isLoggedIn);
 
   return (
-    <div className="flex gap-1 overflow-x-auto scrollbar-hide">
-      {visibleTabs.map((tab) => {
-        const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
-        return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-              isActive
-                ? "bg-primary text-white"
-                : "text-text-muted hover:text-foreground hover:bg-surface-elevated"
-            }`}
-          >
-            {tab.label}
-          </Link>
-        );
-      })}
-    </div>
+    <nav className="w-full border-b border-border/30 bg-background/80 backdrop-blur-xl">
+      <div className="max-w-6xl mx-auto flex">
+        {visibleTabs.map((tab) => {
+          const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`flex-1 text-center py-3 text-sm font-semibold transition-all relative ${
+                isActive
+                  ? "text-primary"
+                  : "text-text-muted hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+              {isActive && (
+                <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t-full" />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }
