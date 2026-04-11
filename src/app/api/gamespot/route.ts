@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
 
   const geminiKey = process.env.GEMINI_API_KEY;
   const articles = await fetchGameSpotRSS();
-  if (articles.length === 0) return NextResponse.json([]);
+  if (articles.length === 0) return NextResponse.json({ debug: "RSS fetch returned 0 articles" });
 
-  if (!geminiKey) return NextResponse.json([]);
+  if (!geminiKey) return NextResponse.json({ debug: "GEMINI_API_KEY not set" });
 
   try {
     // Give Gemini the real article titles and ask it to pick the relevant ones
@@ -63,14 +63,17 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    if (!res.ok) return NextResponse.json([]);
+    if (!res.ok) {
+      const errText = await res.text();
+      return NextResponse.json({ debug: `Gemini ${res.status}: ${errText.substring(0, 200)}` });
+    }
 
     const data = await res.json();
     const parts = data.candidates?.[0]?.content?.parts ?? [];
     const rawText = parts.map((p: { text?: string }) => p.text ?? "").join("\n");
     const stripped = rawText.replace(/```json\s*/g, "").replace(/```/g, "").trim();
     const jsonMatch = stripped.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return NextResponse.json([]);
+    if (!jsonMatch) return NextResponse.json({ debug: `Parse failed: ${stripped.substring(0, 200)}` });
 
     const indices: number[] = JSON.parse(jsonMatch[0]);
 
@@ -86,7 +89,7 @@ export async function GET(request: NextRequest) {
       }));
 
     return NextResponse.json(selected);
-  } catch {
-    return NextResponse.json([]);
+  } catch (err) {
+    return NextResponse.json({ debug: String(err) });
   }
 }
