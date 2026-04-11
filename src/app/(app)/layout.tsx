@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import TopNav from "@/components/TopNav";
 import BottomNav from "@/components/BottomNav";
 import { GameModalProvider } from "@/components/GameModalContext";
+import { TVShowModalProvider } from "@/components/TVShowModalContext";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -10,6 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <GameModalProvider>
+    <TVShowModalProvider>
       <div className="min-h-screen flex flex-col">
         {/* Top bar — logo + sign in */}
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl">
@@ -34,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
         <BottomNav />
       </div>
+    </TVShowModalProvider>
     </GameModalProvider>
   );
 }

@@ -9,16 +9,33 @@ interface TabItem {
   requiresAuth?: boolean;
 }
 
-const TABS: TabItem[] = [
+const GAMES_TABS: TabItem[] = [
   { href: "/explore", label: "Discover" },
   { href: "/library", label: "Library", requiresAuth: true },
   { href: "/stats", label: "Stats", requiresAuth: true },
 ];
 
+const TV_TABS: TabItem[] = [
+  { href: "/tv", label: "Discover" },
+  { href: "/tv/library", label: "Library", requiresAuth: true },
+  { href: "/tv/stats", label: "Stats", requiresAuth: true },
+];
+
+const GAMES_ROUTES = ["/explore", "/library", "/stats", "/game", "/wiki"];
+const TV_ROUTES = ["/tv"];
+
 export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname();
 
-  const visibleTabs = TABS.filter((tab) => !tab.requiresAuth || isLoggedIn);
+  // Determine which section we're in
+  const isTV = TV_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const isGames = GAMES_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+
+  // Don't show tabs if not in Games or TV section
+  if (!isTV && !isGames) return null;
+
+  const tabs = isTV ? TV_TABS : GAMES_TABS;
+  const visibleTabs = tabs.filter((tab) => !tab.requiresAuth || isLoggedIn);
 
   return (
     <nav className="w-full border-b border-border/30 bg-background/80 backdrop-blur-xl">

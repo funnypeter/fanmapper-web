@@ -68,8 +68,10 @@ export default function BottomNav() {
           const isActive = item.href === "/explore"
             ? ["/explore", "/library", "/stats", "/game", "/wiki"].some(
                 (r) => pathname === r || pathname.startsWith(r + "/")
-              )
-            : pathname === item.href || pathname.startsWith(item.href + "/");
+              ) && !pathname.startsWith("/tv")
+            : item.href === "/tv"
+              ? pathname === "/tv" || pathname.startsWith("/tv/")
+              : pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link
