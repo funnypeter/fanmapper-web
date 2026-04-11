@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
               text: `Here are recent GameSpot articles:\n\n${titleList}\n\nI am interested in the game "${gameTitle}". Pick up to 5 articles I would want to read. Be generous — include articles about:\n- This exact game\n- The same franchise or series\n- The same developer or publisher\n- Games in the same genre\n- Gaming industry news that affects this type of game\n- Similar or competing games\n\nIf fewer than 5 are even loosely related, return only those. If none are related, return an empty array.\n\nReturn ONLY a JSON array of index numbers, no other text. Example: [0, 3, 7]`,
             }],
           }],
-          generationConfig: { temperature: 0.5, maxOutputTokens: 256 },
+          generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
         }),
       }
     );
