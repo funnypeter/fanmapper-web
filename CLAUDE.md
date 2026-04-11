@@ -1,6 +1,6 @@
 # FanMapper Web
 
-A Next.js web app for tracking game libraries with Fandom wiki integration, Steam imports, achievements, interactive maps, stats dashboard, and game-specific news.
+A Next.js web app for tracking game libraries with Fandom wiki integration, Steam imports, achievements, interactive maps, stats dashboard, community polls, live chats, and trending feeds from Metacritic and GameSpot.
 
 ## Stack
 
@@ -18,6 +18,7 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 - **Game IDs are prefixed**: `igdb-{id}` for IGDB games, `steam-{appid}` for Steam imports — this distinguishes sources throughout the app
 - **Wiki keys are prefixed too**: `auto-{wiki}` for auto-detected wikis (e.g. `auto-thesims4`); plain keys (`elden-ring`, `skyrim`) for the 16 hand-curated registry entries
 - **Wiki progress dual-stored**: localStorage (instant) + Supabase wiki_progress table (cross-device sync)
+- **Two-level navigation**: Bottom nav (Home, TV, Games, Collections, Profile) for main sections; top tabs (Discover, Library, Stats) for sub-navigation within Games
 - **Routes are public by default**: Only `/library`, `/profile`, `/profile/*`, `/stats` require auth via middleware
 
 ## Critical Files
@@ -31,6 +32,12 @@ A Next.js web app for tracking game libraries with Fandom wiki integration, Stea
 - `src/app/(app)/wiki/[game]/[page]/page.tsx` — Article viewer with proxied images. Also handles auto wikis.
 - `src/app/(app)/stats/page.tsx` — Server-rendered stats dashboard with status/genre breakdowns
 - `src/components/PollCarousel.tsx` — **Reusable widget**. Self-contained poll carousel (fetches own data, manages state). Drop `<PollCarousel />` anywhere to add community polls. Backed by `PollCard.tsx`, `PollModal.tsx`, and `src/lib/services/pollGenerator.ts`.
+- `src/components/GameChat.tsx` — **Reusable widget**. Live chat card for game detail pages. Shows animated chat preview, expands to full modal. Has demo content for all 15 registry games + generic fallback. Usage: `<GameChat gameTitle={title} />`
+- `src/components/TrendingChats.tsx` — **Reusable widget**. Horizontal scroll of animated live chat rooms for the Explore page. Usage: `<TrendingChats />`
+- `src/components/TopNav.tsx` — Top tab navigation (Discover, Library, Stats) within the Games section
+- `src/components/BottomNav.tsx` — Bottom navigation (Home, TV, Games, Collections, Profile)
+- `src/app/api/polls/` — Poll endpoints: GET active polls, POST vote, POST generate (via Gemini API)
+- `src/app/api/metacritic/route.ts` — Fetches trending games from Metacritic backend API with scores and cover art
 - `src/middleware.ts` — Auth-protected route logic
 - `supabase/migrations/` — SQL migrations (run manually in Supabase SQL Editor; not auto-applied)
 
@@ -76,7 +83,8 @@ Game detail pages show a News card filtered to articles mentioning the game:
 - **Game registry is the source of truth** — Home page trending games, wiki configs, and cover art all pull from `GAME_REGISTRY`
 - **Status colors**: playing=primary purple, completed=success green, backlog=xp yellow, wishlist=accent teal, dropped=error red
 - **All state changes save to Supabase immediately** — no "Save" buttons except for review text and playtime input
-- **Bottom nav**: Home (house), Library (stack), Stats (chart), Profile (person)
+- **Bottom nav**: Home, TV, Games, Collections, Profile — Games highlights when on /explore, /library, /stats, /game, /wiki
+- **Top tabs** (within Games): Discover, Library, Stats
 
 ## Environment Variables
 
