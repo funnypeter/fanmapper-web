@@ -99,6 +99,7 @@ Game detail pages show a News card filtered to articles mentioning the game:
 - `IGDB_CLIENT_SECRET`
 - `STEAM_API_KEY` (steamcommunity.com/dev/apikey)
 - `GEMINI_API_KEY` (Google AI Studio — used for auto-generating community polls)
+- `TVDB_API_KEY` (thetvdb.com — v4 API key for TV show data)
 
 ## Common Tasks
 
