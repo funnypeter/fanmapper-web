@@ -43,16 +43,32 @@ Return ONLY a JSON array, no other text:
 
     const articles: GeminiArticle[] = JSON.parse(jsonMatch[0]);
 
-    // Return with GameSpot source label and a placeholder image
-    return NextResponse.json(
-      articles.slice(0, 5).map((a) => ({
-        title: a.title,
-        link: a.url,
-        image: null,
-        source: "GameSpot",
-        pubDate: new Date().toISOString(),
-      }))
+    // Fetch OG images from each article page in parallel
+    const withImages = await Promise.all(
+      articles.slice(0, 5).map(async (a) => {
+        let image: string | null = null;
+        try {
+          const pageRes = await fetch(a.url, {
+            headers: { "User-Agent": "Mozilla/5.0 (compatible; FanMapper/1.0)" },
+          });
+          if (pageRes.ok) {
+            const html = await pageRes.text();
+            const ogImage = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/)?.[1]
+              ?? html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:image"/)?.[1];
+            if (ogImage) image = ogImage;
+          }
+        } catch { /* skip */ }
+        return {
+          title: a.title,
+          link: a.url,
+          image,
+          source: "GameSpot",
+          pubDate: new Date().toISOString(),
+        };
+      })
     );
+
+    return NextResponse.json(withImages);
   } catch {
     return NextResponse.json([]);
   }
