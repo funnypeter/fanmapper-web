@@ -66,7 +66,7 @@ export default function BottomNav() {
         {NAV_ITEMS.map((item) => {
           // Games tab is active for /explore, /library, /stats, /chats, /game, /wiki
           const isActive = item.href === "/explore"
-            ? ["/explore", "/library", "/stats", "/chats", "/game", "/wiki"].some(
+            ? ["/explore", "/library", "/stats", "/game", "/wiki"].some(
                 (r) => pathname === r || pathname.startsWith(r + "/")
               )
             : pathname === item.href || pathname.startsWith(item.href + "/");

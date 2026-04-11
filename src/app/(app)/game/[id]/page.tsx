@@ -9,6 +9,7 @@ import ReviewSection from "@/components/ReviewSection";
 import SteamReviews from "@/components/SteamReviews";
 import GameNews from "@/components/GameNews";
 import AutoWikiCard from "@/components/AutoWikiCard";
+import GameChat from "@/components/GameChat";
 
 interface GameData {
   id: string;
@@ -340,8 +341,14 @@ export default function GameDetailPage() {
               <span className="text-xp">→</span>
             </Link>
           )}
+
         </div>
       )}
+
+      {/* Live Chat */}
+      <div className="mb-6">
+        <GameChat gameTitle={game.title} />
+      </div>
 
       {/* Videos — horizontal scroll */}
       {game.videos.length > 0 && (

@@ -13,7 +13,6 @@ const TABS: TabItem[] = [
   { href: "/explore", label: "Discover" },
   { href: "/library", label: "Library", requiresAuth: true },
   { href: "/stats", label: "Stats", requiresAuth: true },
-  { href: "/chats", label: "Chats" },
 ];
 
 export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
