@@ -38,7 +38,7 @@ export default function LandingPage() {
       <header className="flex items-center justify-between px-6 md:px-12 py-4 border-b border-border/50 backdrop-blur sticky top-0 z-50 bg-background/80">
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
           <img src="/icon-192.png" alt="" className="h-8 w-8" />
-          <span><span className="text-yellow-400">Fan</span><span className="text-primary">Companion</span></span>
+          <span className="font-bold"><span className="text-yellow-400">Fan</span><span className="text-primary">Companion</span></span>
         </h1>
         <div className="flex items-center gap-4">
           <Link href="/auth/login" className="text-sm text-text-secondary hover:text-foreground transition">
