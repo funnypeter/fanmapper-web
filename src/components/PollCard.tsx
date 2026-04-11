@@ -30,12 +30,12 @@ export default function PollCard({ poll, onSelect }: PollCardProps) {
         <img
           src={poll.imageUrl}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-30 blur-sm group-hover:opacity-40 transition"
+          className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-70 transition"
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20" />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
       {/* Content */}
       <div className="relative p-4 h-full flex flex-col min-h-[220px]">
