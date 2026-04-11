@@ -10,6 +10,7 @@ import SteamReviews from "@/components/SteamReviews";
 import GameNews from "@/components/GameNews";
 import AutoWikiCard from "@/components/AutoWikiCard";
 import GameChat from "@/components/GameChat";
+import GameSpotArticles from "@/components/GameSpotArticles";
 
 interface GameData {
   id: string;
@@ -349,6 +350,9 @@ export default function GameDetailPage() {
       <div className="mb-6">
         <GameChat gameTitle={game.title} />
       </div>
+
+      {/* GameSpot Articles */}
+      <GameSpotArticles gameTitle={game.title} />
 
       {/* Videos — horizontal scroll */}
       {game.videos.length > 0 && (
