@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { findTVWikiConfigByTmdbId, TV_SHOW_REGISTRY } from "@/lib/services/tvRegistry";
 import type { TVDBShowDetail, TVDBEpisode } from "@/lib/services/tvdb";
 import TVGuideArticles from "@/components/TVGuideArticles";
+import { useTVShowModal } from "@/components/TVShowModalContext";
 
 interface UserShowData {
   status: string;
@@ -27,6 +28,7 @@ const STATUSES = [
 export default function TVShowDetailContent({ showId }: { showId: string }) {
   const router = useRouter();
   const supabase = createClient();
+  const { openEpisodeWiki } = useTVShowModal();
 
   const [show, setShow] = useState<TVDBShowDetail | null>(null);
   const [userShow, setUserShow] = useState<UserShowData | null>(null);
@@ -336,12 +338,9 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                               <img src={ep.image} alt="" className="w-16 h-10 rounded object-cover shrink-0" />
                             )}
 
-                            <a
-                              href={wikiKey ? `/tv/wiki/${wikiKey}/${encodeURIComponent(ep.title)}` : undefined}
-                              onClick={(e) => {
-                                if (!wikiKey) { e.preventDefault(); return; }
-                              }}
-                              className={`flex-1 min-w-0 ${wikiKey ? "cursor-pointer" : ""}`}
+                            <button
+                              onClick={() => wikiKey && openEpisodeWiki(ep.title)}
+                              className={`flex-1 min-w-0 text-left ${wikiKey ? "cursor-pointer" : ""}`}
                             >
                               <p className={`text-sm font-medium truncate ${isChecked ? "text-text-muted line-through" : ""} ${wikiKey ? "hover:text-primary transition" : ""}`}>
                                 <span className="text-text-muted mr-1">E{ep.episodeNumber}</span>
@@ -350,8 +349,9 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                               <div className="flex items-center gap-2">
                                 {ep.aired && <span className="text-[10px] text-text-muted">{ep.aired}</span>}
                                 {ep.runtime && <span className="text-[10px] text-text-muted">· {ep.runtime}min</span>}
+                                {wikiKey && <span className="text-[10px] text-primary">View wiki →</span>}
                               </div>
-                            </a>
+                            </button>
                           </div>
                         );
                       })}

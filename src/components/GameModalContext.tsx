@@ -43,11 +43,11 @@ export function GameModalProvider({ children }: { children: React.ReactNode }) {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close bar */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/30 bg-surface-elevated/50 flex-shrink-0">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-surface-elevated flex-shrink-0">
               <div className="w-10 h-1 rounded-full bg-border mx-auto sm:hidden" />
               <button
                 onClick={closeGame}
-                className="absolute right-3 top-2 text-text-muted hover:text-foreground transition text-xl leading-none p-1"
+                className="absolute right-2 top-1.5 flex items-center justify-center w-8 h-8 rounded-full bg-surface-elevated border border-border hover:bg-error/20 hover:border-error/50 hover:text-error transition text-lg leading-none"
               >
                 &times;
               </button>
