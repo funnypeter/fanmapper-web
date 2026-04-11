@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { searchGames } from "@/lib/services/igdb";
 import AchievementCelebration from "@/components/AchievementCelebration";
+import PollCarousel from "@/components/PollCarousel";
 
 interface NewsItem {
   title: string;
@@ -108,9 +109,11 @@ export default function ExplorePage() {
         <p className="text-text-secondary text-center mb-12">No games found for &ldquo;{query}&rdquo;</p>
       )}
 
-      {/* Trending / Popular games */}
+      {/* Polls + Trending / Popular games */}
       {!searched && (
         <>
+          <PollCarousel />
+
           <div className="mb-12">
             <h3 className="text-xl font-bold mb-2">Trending Games</h3>
             <p className="text-text-secondary text-sm mb-5">Popular titles to track and explore</p>

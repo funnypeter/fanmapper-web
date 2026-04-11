@@ -70,6 +70,7 @@ Game detail pages show a News card filtered to articles mentioning the game:
 
 ## Conventions
 
+- **Always commit and push** after completing a feature or task — don't wait to be asked
 - **Server components by default**, client components only where state/interactivity needed
 - **Game registry is the source of truth** — Home page trending games, wiki configs, and cover art all pull from `GAME_REGISTRY`
 - **Status colors**: playing=primary purple, completed=success green, backlog=xp yellow, wishlist=accent teal, dropped=error red
@@ -83,6 +84,7 @@ Game detail pages show a News card filtered to articles mentioning the game:
 - `IGDB_CLIENT_ID` (Twitch dev console)
 - `IGDB_CLIENT_SECRET`
 - `STEAM_API_KEY` (steamcommunity.com/dev/apikey)
+- `GEMINI_API_KEY` (Google AI Studio — used for auto-generating community polls)
 
 ## Common Tasks
 
