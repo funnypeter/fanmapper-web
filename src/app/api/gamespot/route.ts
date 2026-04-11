@@ -1,44 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-interface NewsItem {
+interface GeminiArticle {
   title: string;
-  link: string;
-  image: string | null;
-  source: string;
-  pubDate: string;
+  url: string;
 }
 
-function decodeHtml(html: string): string {
-  return html.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/&#x27;/g, "'");
-}
+export async function GET(request: NextRequest) {
+  const gameTitle = request.nextUrl.searchParams.get("game");
+  if (!gameTitle) return NextResponse.json([]);
 
-async function fetchGameSpotRSS(): Promise<NewsItem[]> {
-  try {
-    const res = await fetch("https://www.gamespot.com/feeds/mashup/", { next: { revalidate: 1800 } });
-    if (!res.ok) return [];
-    const xml = await res.text();
-
-    const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 30);
-
-    return items.map((match) => {
-      const content = match[1];
-      const title = decodeHtml(content.match(/<title><!\[CDATA\[(.*?)\]\]>|<title>(.*?)<\/title>/)?.[1] ?? content.match(/<title>(.*?)<\/title>/)?.[1] ?? "");
-      const link = content.match(/<link>(.*?)<\/link>/)?.[1] ?? "";
-      const image = content.match(/url="([^"]+)"/)?.[1]
-        ?? content.match(/<media:thumbnail[^>]*url="([^"]+)"/)?.[1]
-        ?? null;
-      const pubDate = content.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "";
-
-      return { title, link, image, source: "GameSpot", pubDate };
-    }).filter((n) => n.title);
-  } catch {
-    return [];
-  }
-}
-
-async function getRelatedKeywords(gameTitle: string): Promise<string[]> {
   const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) return [gameTitle];
+  if (!geminiKey) return NextResponse.json([]);
 
   try {
     const res = await fetch(
@@ -49,70 +21,39 @@ async function getRelatedKeywords(gameTitle: string): Promise<string[]> {
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `For the video game "${gameTitle}", list 8-10 related search keywords that someone interested in this game would also care about. Include:
-- The game title itself and abbreviations
-- The game's franchise/series name
-- The developer and publisher
-- Similar competing games in the same genre
-- The game's genre keywords
+              text: `Give me 5 GameSpot articles that someone interested in the game "${gameTitle}" would want to read. These should be real, recent GameSpot articles about this game or closely related games.
 
-Return ONLY a JSON array of lowercase strings, no other text.
-Example: ["elden ring", "fromsoftware", "dark souls", "bloodborne", "soulslike", "action rpg", "bandai namco"]`,
+Return ONLY a JSON array, no other text:
+[{"title": "Article title", "url": "https://www.gamespot.com/..."}]`,
             }],
           }],
-          generationConfig: { temperature: 0.3, maxOutputTokens: 512 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
         }),
       }
     );
 
-    if (!res.ok) return [gameTitle];
+    if (!res.ok) return NextResponse.json([]);
 
     const data = await res.json();
     const parts = data.candidates?.[0]?.content?.parts ?? [];
     const rawText = parts.map((p: { text?: string }) => p.text ?? "").join("\n");
     const stripped = rawText.replace(/```json\s*/g, "").replace(/```/g, "").trim();
     const jsonMatch = stripped.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return [gameTitle];
+    if (!jsonMatch) return NextResponse.json([]);
 
-    const keywords: string[] = JSON.parse(jsonMatch[0]);
-    return keywords.map((k) => k.toLowerCase());
+    const articles: GeminiArticle[] = JSON.parse(jsonMatch[0]);
+
+    // Return with GameSpot source label and a placeholder image
+    return NextResponse.json(
+      articles.slice(0, 5).map((a) => ({
+        title: a.title,
+        link: a.url,
+        image: null,
+        source: "GameSpot",
+        pubDate: new Date().toISOString(),
+      }))
+    );
   } catch {
-    return [gameTitle];
+    return NextResponse.json([]);
   }
-}
-
-export async function GET(request: NextRequest) {
-  const gameTitle = request.nextUrl.searchParams.get("game");
-  if (!gameTitle) return NextResponse.json([]);
-
-  // Fetch articles and related keywords in parallel
-  const [allArticles, keywords] = await Promise.all([
-    fetchGameSpotRSS(),
-    getRelatedKeywords(gameTitle),
-  ]);
-
-  // Score each article by how many keywords match
-  const scored = allArticles.map((article) => {
-    const titleLower = article.title.toLowerCase();
-    let score = 0;
-    for (const keyword of keywords) {
-      // Multi-word keywords: check if all words appear
-      const words = keyword.split(/\s+/);
-      if (words.length > 1) {
-        if (words.every((w) => titleLower.includes(w))) score += 2;
-      } else if (titleLower.includes(keyword)) {
-        score += 1;
-      }
-    }
-    return { article, score };
-  });
-
-  // Filter to articles that match at least one keyword, sorted by score
-  const related = scored
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map((s) => s.article)
-    .slice(0, 10);
-
-  return NextResponse.json(related);
 }
