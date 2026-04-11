@@ -53,14 +53,16 @@ export async function GET() {
 
     // Auto-generate if none exist
     if (polls.length === 0) {
-      const generated = await generatePolls();
-      if (generated) {
+      const { success, error: genError } = await generatePolls();
+      if (success) {
         polls = await fetchActivePolls(supabase, userId);
+      } else if (genError) {
+        return NextResponse.json({ polls: [], debug: genError });
       }
     }
 
     return NextResponse.json({ polls });
-  } catch {
-    return NextResponse.json({ polls: [] });
+  } catch (err) {
+    return NextResponse.json({ polls: [], debug: String(err) });
   }
 }

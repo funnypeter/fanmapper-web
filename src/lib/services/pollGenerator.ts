@@ -56,13 +56,13 @@ interface GeminiPoll {
 // In-memory lock to prevent concurrent generation
 let generating = false;
 
-export async function generatePolls(): Promise<boolean> {
-  if (generating) return false;
+export async function generatePolls(): Promise<{ success: boolean; error?: string }> {
+  if (generating) return { success: false, error: "Generation already in progress" };
   generating = true;
 
   try {
     const geminiKey = process.env.GEMINI_API_KEY;
-    if (!geminiKey) return false;
+    if (!geminiKey) return { success: false, error: "GEMINI_API_KEY not configured" };
 
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
@@ -105,34 +105,44 @@ Return ONLY a JSON array with no other text, in this exact format:
       }
     );
 
-    if (!geminiRes.ok) return false;
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text();
+      return { success: false, error: `Gemini API ${geminiRes.status}: ${errText.substring(0, 200)}` };
+    }
 
     const geminiData = await geminiRes.json();
     const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return false;
+    if (!jsonMatch) return { success: false, error: `Failed to parse Gemini response: ${rawText.substring(0, 200)}` };
 
     const polls: GeminiPoll[] = JSON.parse(jsonMatch[0]);
 
     const supabase = await createServerClient();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
+    const errors: string[] = [];
     for (const poll of polls) {
       const imageUrl = await searchGameCover(poll.gameHint);
 
-      await supabase.from("polls").insert({
+      const { error } = await supabase.from("polls").insert({
         question: poll.question,
         options: poll.options,
         image_url: imageUrl,
         game_hint: poll.gameHint,
         expires_at: expiresAt,
       });
+
+      if (error) errors.push(`Insert failed: ${error.message}`);
     }
 
-    return true;
-  } catch {
-    return false;
+    if (errors.length === polls.length) {
+      return { success: false, error: errors.join("; ") };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: String(err) };
   } finally {
     generating = false;
   }
