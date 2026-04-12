@@ -38,10 +38,12 @@ function WikiModal({ wiki, pageTitle, onClose }: { wiki: string; pageTitle: stri
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    searchAndFetchPage(wiki, pageTitle).then((data) => {
-      if (data?.html) setContent(cleanWikiHtml(data.html));
-      setLoading(false);
-    });
+    searchAndFetchPage(wiki, pageTitle)
+      .then((data) => {
+        if (data?.html) setContent(cleanWikiHtml(data.html));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [wiki, pageTitle]);
 
   return (
