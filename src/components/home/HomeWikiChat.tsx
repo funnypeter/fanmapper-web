@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { searchAndFetchPage } from "@/lib/services/fandom";
 
 interface ChatResult {
   answer: string;
@@ -20,12 +21,73 @@ const HINTS = [
   "Who are the main characters in Arcane?",
 ];
 
+function cleanWikiHtml(html: string): string {
+  let cleaned = html;
+  cleaned = cleaned.replace(/\s+src="data:image[^"]*"/g, "");
+  cleaned = cleaned.replace(/data-src="/g, 'src="');
+  cleaned = cleaned.replace(/\s+srcset="[^"]*"/g, "");
+  cleaned = cleaned.replace(
+    /src="(https:\/\/static\.wikia\.nocookie\.net[^"]*)"/g,
+    (_: string, url: string) => `src="/api/img?url=${encodeURIComponent(url)}"`
+  );
+  return cleaned;
+}
+
+function WikiModal({ wiki, pageTitle, onClose }: { wiki: string; pageTitle: string; onClose: () => void }) {
+  const [content, setContent] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    searchAndFetchPage(wiki, pageTitle).then((data) => {
+      if (data?.html) setContent(cleanWikiHtml(data.html));
+      setLoading(false);
+    });
+  }, [wiki, pageTitle]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        className="relative w-full sm:max-w-2xl h-[85vh] sm:h-[80vh] bg-background rounded-t-2xl sm:rounded-2xl overflow-hidden border border-border/50 flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 bg-surface-elevated flex-shrink-0">
+          <h3 className="font-bold text-sm truncate flex-1">{pageTitle}</h3>
+          <button onClick={onClose} className="ml-2 flex items-center justify-center w-8 h-8 rounded-full bg-surface-elevated border border-border hover:bg-error/20 hover:border-error/50 hover:text-error transition text-lg leading-none">
+            &times;
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+          {loading ? (
+            <div className="flex justify-center py-16">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : content ? (
+            <div>
+              <div className="wiki-content" dangerouslySetInnerHTML={{ __html: content }} />
+              <div className="border-t border-border mt-6 pt-4">
+                <p className="text-[10px] text-text-muted">
+                  Content from {wiki}.fandom.com — Licensed under CC BY-SA 3.0
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-text-secondary text-center py-8">No wiki content available.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function HomeWikiChat() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ChatResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(true);
   const [hintIndex, setHintIndex] = useState(0);
+  const [wikiModal, setWikiModal] = useState<{ wiki: string; title: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,6 +104,7 @@ export default function HomeWikiChat() {
     setLoading(true);
     setResult(null);
     setError(null);
+    setExpanded(true);
 
     try {
       const res = await fetch("/api/wiki-chat", {
@@ -116,35 +179,56 @@ export default function HomeWikiChat() {
         )}
 
         {result && (
-          <div className="mt-4 card-glass p-5 animate-fade-in">
-            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{result.answer}</p>
+          <div className="mt-4 card-glass animate-fade-in">
+            {/* Collapsible header */}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-surface-elevated/30 transition rounded-t-xl"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs text-primary font-semibold">Answer from {result.wikiName}</span>
+              </div>
+              <span className={`text-text-muted text-sm transition-transform ${expanded ? "rotate-180" : ""}`}>▼</span>
+            </button>
 
-            {result.sources.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-border/30">
-                <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold mb-2">Sources</p>
-                <div className="flex flex-wrap gap-2">
-                  {result.sources.map((s) => (
-                    <a
-                      key={s.url}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition"
-                    >
-                      <span>📖</span>
-                      <span>{s.title}</span>
-                    </a>
-                  ))}
-                </div>
+            {expanded && (
+              <div className="px-5 pb-5">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{result.answer}</p>
+
+                {result.sources.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-border/30">
+                    <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold mb-2">Sources</p>
+                    <div className="flex flex-wrap gap-2">
+                      {result.sources.map((s) => (
+                        <button
+                          key={s.url}
+                          onClick={() => setWikiModal({ wiki: result.wiki, title: s.title })}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition"
+                        >
+                          <span>📖</span>
+                          <span>{s.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[10px] text-text-muted mt-3">
+                  Powered by {result.wikiName} on Fandom
+                </p>
               </div>
             )}
-
-            <p className="text-[10px] text-text-muted mt-3">
-              Powered by {result.wikiName} on Fandom
-            </p>
           </div>
         )}
       </div>
+
+      {wikiModal && (
+        <WikiModal
+          wiki={wikiModal.wiki}
+          pageTitle={wikiModal.title}
+          onClose={() => setWikiModal(null)}
+        />
+      )}
     </section>
   );
 }
