@@ -194,7 +194,6 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
   const openWikiArticle = useCallback((wikiSubdomain: string, pageTitle: string) => {
     savedScrollPos.current = scrollRef.current?.scrollTop ?? 0;
     setWikiView({ wiki: wikiSubdomain, page: pageTitle });
-    setBriefingView(null);
     window.history.pushState({ tvModal: "wiki" }, "");
   }, []);
 
@@ -207,8 +206,9 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     function handlePopState() {
-      if (wikiView || briefingView) {
+      if (wikiView) {
         setWikiView(null);
+      } else if (briefingView) {
         setBriefingView(null);
       } else if (activeShowId) {
         setActiveShowId(null);
@@ -252,7 +252,7 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
               <TVShowDetailContent showId={activeShowId} />
             </div>
 
-            {/* Wiki view */}
+            {/* Wiki view — renders on top of briefing if both are set */}
             {wikiView && (
               <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
                 <WikiArticleView
@@ -263,8 +263,8 @@ export function TVShowModalProvider({ children }: { children: React.ReactNode })
               </div>
             )}
 
-            {/* Briefing view */}
-            {briefingView && (
+            {/* Briefing view — only visible when wiki view is closed */}
+            {!wikiView && briefingView && (
               <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
                 <BriefingView
                   params={briefingView}
