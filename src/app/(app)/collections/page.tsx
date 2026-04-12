@@ -20,6 +20,9 @@ interface Board {
   items: CollectionItem[];
 }
 
+const C = (id: string) => `https://images.igdb.com/igdb/image/upload/t_cover_big/${id}.jpg`;
+const T = (id: string) => `https://image.tmdb.org/t/p/w500${id}`;
+
 const BOARDS: Board[] = [
   {
     id: "elden-ring-fan",
@@ -29,12 +32,12 @@ const BOARDS: Board[] = [
     emoji: "⚔️",
     color: "from-yellow-500/20 to-orange-600/10",
     items: [
-      { title: "Tarnished Premium Statue — 14\" Polystone", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnmj.jpg", price: "$349.99", store: "Bandai Namco Store", tag: "Limited Edition" },
-      { title: "Malenia Blade of Miquella Figure", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8gp9.jpg", price: "$189.99", store: "Bandai Namco Store", tag: "Best Seller" },
-      { title: "Lands Between Map Poster — Cloth Edition", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnmi.jpg", price: "$29.99", store: "Fangamer" },
-      { title: "Golden Order Sigil LED Desk Lamp", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnmk.jpg", price: "$69.99", store: "Etsy" },
-      { title: "Elden Ring Official Art Book Vol. 1", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", price: "$44.99", store: "Amazon" },
-      { title: "Ranni the Witch Nendoroid", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnml.jpg", price: "$54.99", store: "Good Smile Company", tag: "Pre-Order" },
+      { title: "Tarnished Premium Statue — 14\" Polystone", image: C("co4jni"), price: "$349.99", store: "Bandai Namco Store", tag: "Limited Edition" },
+      { title: "Malenia Blade of Miquella Figure", image: C("co5s5v"), price: "$189.99", store: "Bandai Namco Store", tag: "Best Seller" },
+      { title: "Lands Between Map Poster — Cloth Edition", image: C("co1tmu"), price: "$29.99", store: "Fangamer" },
+      { title: "Golden Order Sigil LED Desk Lamp", image: C("co2q9f"), price: "$69.99", store: "Etsy" },
+      { title: "Elden Ring Official Art Book Vol. 1", image: C("co4jni"), price: "$44.99", store: "Amazon" },
+      { title: "Ranni the Witch Nendoroid", image: C("co670h"), price: "$54.99", store: "Good Smile Company", tag: "Pre-Order" },
     ],
   },
   {
@@ -45,11 +48,11 @@ const BOARDS: Board[] = [
     emoji: "🎧",
     color: "from-primary/20 to-accent/10",
     items: [
-      { title: "SteelSeries Arctis Nova Pro Wireless", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sccndt.jpg", price: "$349.99", store: "SteelSeries", tag: "Editor's Pick" },
-      { title: "PlayStation DualSense Edge Controller", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc9ei3.jpg", price: "$199.99", store: "PlayStation Direct", tag: "Top Rated" },
-      { title: "Razer Huntsman V3 Pro TKL Keyboard", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc9ehd.jpg", price: "$249.99", store: "Razer" },
-      { title: "LG 27GR95QE OLED Gaming Monitor 27\"", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8h0n.jpg", price: "$799.99", store: "Best Buy" },
-      { title: "Secretlab Titan Evo Gaming Chair", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8vpf.jpg", price: "$519.00", store: "Secretlab" },
+      { title: "SteelSeries Arctis Nova Pro Wireless", image: C("co5w0w"), price: "$349.99", store: "SteelSeries", tag: "Editor's Pick" },
+      { title: "PlayStation DualSense Edge Controller", image: C("co5s5v"), price: "$199.99", store: "PlayStation Direct", tag: "Top Rated" },
+      { title: "Razer Huntsman V3 Pro TKL Keyboard", image: C("co5vst"), price: "$249.99", store: "Razer" },
+      { title: "LG 27GR95QE OLED Gaming Monitor 27\"", image: C("co2lbd"), price: "$799.99", store: "Best Buy" },
+      { title: "Secretlab Titan Evo Gaming Chair", image: C("co1tmu"), price: "$519.00", store: "Secretlab" },
     ],
   },
   {
@@ -60,12 +63,12 @@ const BOARDS: Board[] = [
     emoji: "📺",
     color: "from-accent/20 to-success/10",
     items: [
-      { title: "House of the Dragon Targaryen Sigil Hoodie", image: "https://image.tmdb.org/t/p/w500/z2yahl2uefxDCl0nogcRBstwruJ.jpg", price: "$64.99", store: "HBO Shop" },
-      { title: "Severance Lumon Industries Employee Kit", image: "https://image.tmdb.org/t/p/w500/lnv4wFMvcWnEXRViMUBigGMiSM6.jpg", price: "$49.99", store: "Apple TV+ Shop", tag: "Fan Favorite" },
-      { title: "Stranger Things Hellfire Club Varsity Jacket", image: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg", price: "$129.99", store: "Netflix Shop", tag: "Trending" },
-      { title: "The Boys Homelander Action Figure", image: "https://image.tmdb.org/t/p/w500/stTEycfG9Lksg3JlOxnbhv0MBfX.jpg", price: "$39.99", store: "Amazon" },
-      { title: "Arcane Jinx Premium Art Print", image: "https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg", price: "$34.99", store: "Riot Games Merch" },
-      { title: "The Last of Us Firefly Pendant Necklace", image: "https://image.tmdb.org/t/p/w500/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg", price: "$24.99", store: "Naughty Dog Store" },
+      { title: "House of the Dragon Targaryen Sigil Hoodie", image: T("/z2yahl2uefxDCl0nogcRBstwruJ.jpg"), price: "$64.99", store: "HBO Shop" },
+      { title: "Severance Lumon Industries Employee Kit", image: T("/lnv4wFMvcWnEXRViMUBigGMiSM6.jpg"), price: "$49.99", store: "Apple TV+ Shop", tag: "Fan Favorite" },
+      { title: "Stranger Things Hellfire Club Varsity Jacket", image: T("/49WJfeN0moxb9IPfGn8AIqMGskD.jpg"), price: "$129.99", store: "Netflix Shop", tag: "Trending" },
+      { title: "The Boys Homelander Action Figure", image: T("/stTEycfG9Lksg3JlOxnbhv0MBfX.jpg"), price: "$39.99", store: "Amazon" },
+      { title: "Arcane Jinx Premium Art Print", image: T("/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg"), price: "$34.99", store: "Riot Games Merch" },
+      { title: "The Last of Us Firefly Pendant Necklace", image: T("/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg"), price: "$24.99", store: "Naughty Dog Store" },
     ],
   },
   {
@@ -76,11 +79,11 @@ const BOARDS: Board[] = [
     emoji: "💎",
     color: "from-error/20 to-pink-500/10",
     items: [
-      { title: "Baldur's Gate 3 Collector's Edition", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg", price: "$269.99", store: "Larian Studios", tag: "Sold Out" },
-      { title: "Zelda: Tears of the Kingdom CE w/ Artbook", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", price: "$129.99", store: "Nintendo Store" },
-      { title: "Cyberpunk 2077 Ultimate Edition Steelbook", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5w0w.jpg", price: "$79.99", store: "CD Projekt Red Gear" },
-      { title: "God of War Ragnarök Jötnar Edition", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg", price: "$259.99", store: "PlayStation Direct", tag: "Limited Edition" },
-      { title: "Starfield Constellation Edition", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vst.jpg", price: "$299.99", store: "Bethesda Store" },
+      { title: "Baldur's Gate 3 Collector's Edition", image: C("co670h"), price: "$269.99", store: "Larian Studios", tag: "Sold Out" },
+      { title: "Zelda: Tears of the Kingdom CE w/ Artbook", image: C("co5vmg"), price: "$129.99", store: "Nintendo Store" },
+      { title: "Cyberpunk 2077 Ultimate Edition Steelbook", image: C("co5w0w"), price: "$79.99", store: "CD Projekt Red Gear" },
+      { title: "God of War Ragnarök Jötnar Edition", image: C("co5s5v"), price: "$259.99", store: "PlayStation Direct", tag: "Limited Edition" },
+      { title: "Starfield Constellation Edition", image: C("co5vst"), price: "$299.99", store: "Bethesda Store" },
     ],
   },
   {
@@ -91,10 +94,10 @@ const BOARDS: Board[] = [
     emoji: "🎨",
     color: "from-pink-500/20 to-primary/10",
     items: [
-      { title: "Hades — Zagreus & Cerberus Giclee Print", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8gp9.jpg", price: "$29.99", store: "Supergiant Games" },
-      { title: "Skyrim Dragon Encounter Fine Art Print", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/yllwxzz3uhjfb2a8jxjm.jpg", price: "$79.99", store: "Cook & Becker", tag: "Limited Edition" },
-      { title: "The Witcher — Geralt of Rivia Portrait", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg", price: "$49.99", store: "Dark Horse" },
-      { title: "Genshin Impact — Mondstadt Panorama Canvas", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc91bj.jpg", price: "$89.99", store: "miHoYo Store" },
+      { title: "Hades — Zagreus & Cerberus Giclee Print", image: C("co2q9f"), price: "$29.99", store: "Supergiant Games" },
+      { title: "Skyrim Dragon Encounter Fine Art Print", image: C("co1tnw"), price: "$79.99", store: "Cook & Becker", tag: "Limited Edition" },
+      { title: "The Witcher — Geralt of Rivia Portrait", image: C("co1wyy"), price: "$49.99", store: "Dark Horse" },
+      { title: "Genshin Impact — Mondstadt Panorama Canvas", image: C("co2mjs"), price: "$89.99", store: "miHoYo Store" },
     ],
   },
   {
@@ -105,11 +108,11 @@ const BOARDS: Board[] = [
     emoji: "🗡️",
     color: "from-success/20 to-accent/10",
     items: [
-      { title: "Master Sword & Hylian Shield Replica Set", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sccndt.jpg", price: "$149.99", store: "Amazon", tag: "Best Seller" },
-      { title: "Link Nendoroid — Tears of the Kingdom Ver.", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", price: "$54.99", store: "Good Smile Company" },
-      { title: "Hylian Crest Embroidered Bomber Jacket", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnmi.jpg", price: "$89.99", store: "Nintendo Store" },
-      { title: "Korok Plush Collection (Set of 5)", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnmk.jpg", price: "$44.99", store: "Fangamer", tag: "Fan Favorite" },
-      { title: "Breath of the Wild Deluxe Art Book", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/scfnml.jpg", price: "$39.99", store: "Dark Horse Comics" },
+      { title: "Master Sword & Hylian Shield Replica Set", image: C("co5vmg"), price: "$149.99", store: "Amazon", tag: "Best Seller" },
+      { title: "Link Nendoroid — Tears of the Kingdom Ver.", image: C("co3p2d"), price: "$54.99", store: "Good Smile Company" },
+      { title: "Hylian Crest Embroidered Bomber Jacket", image: C("co5vmg"), price: "$89.99", store: "Nintendo Store" },
+      { title: "Korok Plush Collection (Set of 5)", image: C("co3p2d"), price: "$44.99", store: "Fangamer", tag: "Fan Favorite" },
+      { title: "Breath of the Wild Deluxe Art Book", image: C("co3p2d"), price: "$39.99", store: "Dark Horse Comics" },
     ],
   },
   {
@@ -120,11 +123,11 @@ const BOARDS: Board[] = [
     emoji: "🧸",
     color: "from-xp/20 to-yellow-500/10",
     items: [
-      { title: "Stardew Valley Junimo Plush Set", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/xrpmydnu9rpxvxfjkiu7.jpg", price: "$34.99", store: "Fangamer", tag: "Fan Favorite" },
-      { title: "Minecraft Creeper Weighted Blanket", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co49x5.jpg", price: "$59.99", store: "Minecraft Shop" },
-      { title: "Animal Crossing Isabelle XL Plush", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co3wls.jpg", price: "$29.99", store: "Nintendo Store" },
-      { title: "Pokémon Snorlax Bean Bag Chair", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8h0n.jpg", price: "$149.99", store: "Pokémon Center", tag: "Trending" },
-      { title: "Fireplace Tavern Soy Candle — RPG Scent", image: "https://images.igdb.com/igdb/image/upload/t_screenshot_big/sc8vpf.jpg", price: "$18.99", store: "Etsy" },
+      { title: "Stardew Valley Junimo Plush Set", image: C("xrpmydnu9rpxvxfjkiu7"), price: "$34.99", store: "Fangamer", tag: "Fan Favorite" },
+      { title: "Minecraft Creeper Weighted Blanket", image: C("co49x5"), price: "$59.99", store: "Minecraft Shop" },
+      { title: "Animal Crossing Isabelle XL Plush", image: C("co3wls"), price: "$29.99", store: "Nintendo Store" },
+      { title: "Pokémon Snorlax Bean Bag Chair", image: C("co2mjs"), price: "$149.99", store: "Pokémon Center", tag: "Trending" },
+      { title: "Fireplace Tavern Soy Candle — RPG Scent", image: C("co1xa4"), price: "$18.99", store: "Etsy" },
     ],
   },
   {
@@ -135,10 +138,10 @@ const BOARDS: Board[] = [
     emoji: "📚",
     color: "from-blue-500/20 to-primary/10",
     items: [
-      { title: "The Witcher: Illustrated Treasury Hardcover", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wyy.jpg", price: "$49.99", store: "Dark Horse Comics" },
-      { title: "Horizon Zero Dawn — Collector's Art Book", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co1rc7.jpg", price: "$39.99", store: "Titan Books" },
-      { title: "The Boys: Homelander Comic Omnibus", image: "https://image.tmdb.org/t/p/w500/stTEycfG9Lksg3JlOxnbhv0MBfX.jpg", price: "$59.99", store: "Dynamite Comics" },
-      { title: "Dark Souls — Design Works Hardcover", image: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", price: "$34.99", store: "Udon Entertainment" },
+      { title: "The Witcher: Illustrated Treasury Hardcover", image: C("co1wyy"), price: "$49.99", store: "Dark Horse Comics" },
+      { title: "Horizon Zero Dawn — Collector's Art Book", image: C("co1rc7"), price: "$39.99", store: "Titan Books" },
+      { title: "The Boys: Homelander Comic Omnibus", image: T("/stTEycfG9Lksg3JlOxnbhv0MBfX.jpg"), price: "$59.99", store: "Dynamite Comics" },
+      { title: "Dark Souls — Design Works Hardcover", image: C("co4jni"), price: "$34.99", store: "Udon Entertainment" },
     ],
   },
 ];
