@@ -37,6 +37,8 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-12">
+      <HomeWikiChat />
+
       <HomeHero
         displayName={displayName}
         gameCount={gameCount}
@@ -44,8 +46,6 @@ export default async function HomePage() {
         playingCount={playingCount}
         watchingCount={watchingCount}
       />
-
-      <HomeWikiChat />
 
       {user && <HomeContinue userId={user.id} />}
 
