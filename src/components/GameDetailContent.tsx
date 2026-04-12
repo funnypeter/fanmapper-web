@@ -11,6 +11,7 @@ import GameNews from "@/components/GameNews";
 import AutoWikiCard from "@/components/AutoWikiCard";
 import GameChat from "@/components/GameChat";
 import GameSpotArticles from "@/components/GameSpotArticles";
+import GameSpotGuide from "@/components/GameSpotGuide";
 
 interface GameData {
   id: string;
@@ -276,6 +277,8 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
           </button>
         </div>
       )}
+
+      <GameSpotGuide gameTitle={game.title} />
 
       {!wikiKey && <AutoWikiCard gameTitle={game.title} />}
 
