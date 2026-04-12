@@ -52,6 +52,23 @@ Return ONLY the JSON, no other text.`,
       return NextResponse.json({ found: false });
     }
 
+    // Validate the URL actually relates to this game — Gemini can hallucinate URLs
+    const gameWords = gameTitle.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter((w: string) => w.length > 2 && !["the", "and", "for"].includes(w));
+    const urlLower = result.url.toLowerCase();
+    const titleLower = (result.title || "").toLowerCase();
+    const matchesGame = gameWords.some((w: string) => urlLower.includes(w) || titleLower.includes(w));
+    if (!matchesGame) {
+      return NextResponse.json({ found: false });
+    }
+
+    // Verify the URL is reachable and not a 404
+    try {
+      const check = await fetch(result.url, { method: "HEAD", redirect: "follow" });
+      if (!check.ok) return NextResponse.json({ found: false });
+    } catch {
+      return NextResponse.json({ found: false });
+    }
+
     return NextResponse.json({
       found: true,
       url: result.url,
