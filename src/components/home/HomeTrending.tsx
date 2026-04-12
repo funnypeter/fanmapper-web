@@ -76,9 +76,14 @@ export default function HomeTrending() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold">Trending Now</h2>
-          <img src="https://www.metacritic.com/a/img/icons/metacritic-icon.svg" alt="Metacritic" className="h-5 w-5 rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#FFCC34]/15 border border-[#FFCC34]/30">
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
+              <circle cx="12" cy="12" r="11" fill="#FFCC34" />
+              <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#000" fontFamily="Arial">M</text>
+            </svg>
+            <span className="text-[10px] font-bold text-[#FFCC34] uppercase tracking-wider">Metacritic</span>
+          </div>
         </div>
-        <p className="text-xs text-text-muted">Powered by Metacritic</p>
       </div>
 
       <Rail label="🎮 Games" items={games} />
