@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import GameDetailContent from "./GameDetailContent";
 
 interface GameModalContextType {
@@ -19,6 +20,18 @@ export function useGameModal() {
 
 export function GameModalProvider({ children }: { children: React.ReactNode }) {
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
+  const pathname = usePathname();
+  const prevPathname = useRef(pathname);
+
+  useEffect(() => {
+    if (pathname !== prevPathname.current) {
+      prevPathname.current = pathname;
+      if (activeGameId) {
+        setActiveGameId(null);
+        document.body.style.overflow = "";
+      }
+    }
+  }, [pathname, activeGameId]);
 
   const openGame = useCallback((gameId: string) => {
     setActiveGameId(gameId);
