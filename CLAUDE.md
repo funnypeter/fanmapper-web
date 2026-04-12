@@ -1,6 +1,6 @@
 # FanCompanion
 
-A Next.js web app for tracking **game and TV libraries** with Fandom wiki integration, Steam imports, achievements, interactive maps, episode tracking, AI episode briefings, stats dashboards, community polls, live chats, and trending feeds from Metacritic, GameSpot, and TVGuide.
+A Next.js web app for tracking **game and TV libraries** with Fandom wiki integration, Steam imports, achievements, interactive maps, episode tracking, AI episode briefings, stats dashboards, community polls, live chats, and trending feeds from Metacritic, GameSpot, and TVGuide. The **Home hub** at `/home` unifies personalized recommendations, Continue Watching/Playing, featured live chats, polls, recent activity, and news across both games and TV.
 
 > Repo and project folder are still named `FanMapper-Web` / `fanmapper-web` for git-history stability. The user-facing brand is **FanCompanion**. Internal User-Agent strings in `fandom.ts` and `api/img/route.ts` intentionally keep the legacy name.
 
@@ -48,6 +48,20 @@ A Next.js web app for tracking **game and TV libraries** with Fandom wiki integr
 - `src/app/api/polls/` — Poll endpoints: GET active polls, POST vote, POST generate (via Gemini API)
 - `src/middleware.ts` — Auth-protected route logic
 - `supabase/migrations/` — SQL migrations (run manually in Supabase SQL Editor; not auto-applied)
+
+### Home Section
+
+The personalized hub at `/home`. Server component orchestrator + 8 client sections. Logged-in vs logged-out branching is handled in the page; individual sections hide themselves when empty.
+
+- `src/app/(app)/home/page.tsx` — Server component orchestrator. Fetches user + display_name + 4 counts in parallel via `Promise.all`, passes `userId` and counts to client sections. Skips `HomeContinue` and `HomeRecentActivity` for logged-out users entirely.
+- `src/components/home/HomeHero.tsx` — Time-of-day greeting, display name, stat chips. Logged-out variant with pitch + CTAs.
+- `src/components/home/HomeContinue.tsx` — Interleaved `user_games` (playing) + `user_shows` (watching) sorted by most-recent `updated_at`. Cards open existing game/TV modals.
+- `src/components/home/HomeFeaturedChats.tsx` — Prominent gradient wrapper around `<TrendingChats hideHeader />` + `<TVTrendingChats hideHeader />`. This is Home's signature section — bigger visual treatment than elsewhere.
+- `src/components/home/HomeForYou.tsx` — Curated recs: 8 games from `GAME_REGISTRY` + 8 TMDB trending shows. Framing adapts to signed-in vs signed-out.
+- `src/components/home/HomeTrending.tsx` — Metacritic games + Metacritic TV shows, both as external links with color-coded score badges.
+- `src/components/home/HomeRecentActivity.tsx` — Unified timeline merging `user_games`, `user_shows`, and `tv_wiki_progress` by timestamp. Relative times. Game/show rows open modals.
+- `src/components/home/HomeNewsFeed.tsx` — Interleaved games/TV news with All/Games/TV filter pills. Fetches `/api/news` + `/api/tv/news`.
+- `src/app/api/tv/news/route.ts` — Generic TV news (TVLine + Deadline RSS, unfiltered). Distinct from `/api/tv/tvguide` which requires a `?show=` param for per-show keyword scoring.
 
 ### TV Section
 
@@ -133,8 +147,10 @@ Game detail pages show a News card filtered to articles mentioning the game:
 
 - **Always commit and push** after completing a feature or task — don't wait to be asked
 - **Server components by default**, client components only where state/interactivity needed
-- **Game registry is the source of truth** for curated game wikis — `GAME_REGISTRY` drives Home trending, wiki configs, and cover art
-- **TV registry is the source of truth** for curated TV wikis — `TV_SHOW_REGISTRY` drives trending shows and wiki mappings; auto detection is the fallback for the long tail
+- **Game registry is the source of truth** for curated game wikis — `GAME_REGISTRY` drives Home "For You" games, Games Discover trending, wiki configs, and cover art
+- **TV registry is the source of truth** for curated TV wikis — `TV_SHOW_REGISTRY` drives TV Discover trending and wiki mappings; auto detection is the fallback for the long tail
+- **Chat components accept `hideHeader`** — `<TrendingChats />` and `<TVTrendingChats />` both accept an optional `hideHeader?: boolean` prop so a parent section can own the heading. Used by `HomeFeaturedChats` to avoid duplicated h3s under the big "Live Now" wrapper.
+- **No Gemini on the Home page** — the Home hub optimizes for low latency on first paint, so recommendations, polls surfaces, and news use free/cached sources (TMDB, Metacritic, IGDB registry, RSS). Gemini calls are reserved for per-game/per-show surfaces (episode briefings, poll generation, etc.)
 - **Status colors**: playing/watching=primary purple, completed=success green, backlog=xp yellow, wishlist=accent teal, dropped=error red
 - **All state changes save to Supabase immediately** — no "Save" buttons except for review text and playtime input
 - **Bottom nav**: Home, TV, Games, Collections, Profile — Games highlights on `/explore`, `/library`, `/stats`, `/game`, `/wiki`; TV highlights on any `/tv/*` route
