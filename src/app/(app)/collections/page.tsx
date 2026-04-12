@@ -61,7 +61,7 @@ const BOARDS: Board[] = [
     color: "from-accent/20 to-success/10",
     items: [
       { title: "House of the Dragon Targaryen Sigil Hoodie", image: "https://image.tmdb.org/t/p/w500/z2yahl2uefxDCl0nogcRBstwruJ.jpg", price: "$64.99", store: "HBO Shop" },
-      { title: "Severance Lumon Industries Employee Kit", image: "https://image.tmdb.org/t/p/w500/pBp2i1JMz6PjKMn3BIEhyDsl3mU.jpg", price: "$49.99", store: "Apple TV+ Shop", tag: "Fan Favorite" },
+      { title: "Severance Lumon Industries Employee Kit", image: "https://image.tmdb.org/t/p/w500/lnv4wFMvcWnEXRViMUBigGMiSM6.jpg", price: "$49.99", store: "Apple TV+ Shop", tag: "Fan Favorite" },
       { title: "Stranger Things Hellfire Club Varsity Jacket", image: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg", price: "$129.99", store: "Netflix Shop", tag: "Trending" },
       { title: "The Boys Homelander Action Figure", image: "https://image.tmdb.org/t/p/w500/stTEycfG9Lksg3JlOxnbhv0MBfX.jpg", price: "$39.99", store: "Amazon" },
       { title: "Arcane Jinx Premium Art Print", image: "https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg", price: "$34.99", store: "Riot Games Merch" },
@@ -143,6 +143,12 @@ const BOARDS: Board[] = [
   },
 ];
 
+const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23161B22' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' fill='%23484F58' text-anchor='middle' dy='.3em' font-size='48'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E";
+
+function handleImgError(e: React.SyntheticEvent<HTMLImageElement>) {
+  (e.target as HTMLImageElement).src = FALLBACK_IMG;
+}
+
 function tagColor(tag: string) {
   switch (tag) {
     case "Limited Edition": return "bg-error/90 text-white";
@@ -210,9 +216,7 @@ export default function CollectionsPage() {
                     src={item.image}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23161B22' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' fill='%23484F58' text-anchor='middle' dy='.3em' font-size='48'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E";
-                    }}
+                    onError={handleImgError}
                   />
                   <div className="absolute top-2 left-2 right-2 flex items-start justify-between">
                     {item.tag && (
@@ -272,19 +276,19 @@ export default function CollectionsPage() {
               {/* 2x2 collage cover */}
               <div className="grid grid-cols-2 gap-0.5 p-0.5">
                 <div className="aspect-square overflow-hidden rounded-tl-xl">
-                  <img src={board.items[0]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={board.items[0]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={handleImgError} />
                 </div>
                 <div className="aspect-square overflow-hidden rounded-tr-xl">
-                  <img src={board.items[1]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={board.items[1]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={handleImgError} />
                 </div>
                 {board.items.length > 2 && (
                   <div className="aspect-square overflow-hidden rounded-bl-xl">
-                    <img src={board.items[2]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={board.items[2]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={handleImgError} />
                   </div>
                 )}
                 {board.items.length > 3 ? (
                   <div className="aspect-square overflow-hidden rounded-br-xl relative">
-                    <img src={board.items[3]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={board.items[3]?.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={handleImgError} />
                     {board.items.length > 4 && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                         <span className="text-white font-bold text-sm">+{board.items.length - 3}</span>
