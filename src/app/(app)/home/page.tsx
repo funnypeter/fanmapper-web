@@ -7,6 +7,7 @@ import HomeTrending from "@/components/home/HomeTrending";
 import PollCarousel from "@/components/PollCarousel";
 import TVPollCarousel from "@/components/TVPollCarousel";
 import HomeRecentActivity from "@/components/home/HomeRecentActivity";
+import HomeNewsFeed from "@/components/home/HomeNewsFeed";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -55,6 +56,8 @@ export default async function HomePage() {
       <TVPollCarousel />
 
       {user && <HomeRecentActivity userId={user.id} />}
+
+      <HomeNewsFeed />
     </div>
   );
 }
