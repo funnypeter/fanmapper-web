@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { searchAndFetchPage } from "@/lib/services/fandom";
 
 interface ChatResult {
   answer: string;
@@ -38,7 +37,8 @@ function WikiModal({ wiki, pageTitle, onClose }: { wiki: string; pageTitle: stri
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    searchAndFetchPage(wiki, pageTitle)
+    fetch(`/api/wiki-page?wiki=${encodeURIComponent(wiki)}&title=${encodeURIComponent(pageTitle)}`)
+      .then((r) => r.json())
       .then((data) => {
         if (data?.html) setContent(cleanWikiHtml(data.html));
       })
