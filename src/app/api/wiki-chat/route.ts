@@ -2,20 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import { detectWiki } from "@/lib/services/wikiDetect";
 import { searchWiki, fetchPage } from "@/lib/services/fandom";
 
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite"];
 
 async function callGemini(apiKey: string, prompt: string): Promise<string | null> {
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
-    }),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? null;
+  for (const model of MODELS) {
+    try {
+      const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.3, maxOutputTokens: 2048 },
+        }),
+      });
+      if (res.status === 503 || res.status === 429) {
+        console.warn(`Gemini ${model} returned ${res.status}, trying next model`);
+        continue;
+      }
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error(`Gemini ${model} ${res.status}: ${errText.substring(0, 300)}`);
+        return null;
+      }
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("") ?? null;
+    } catch (err) {
+      console.error(`Gemini ${model} call failed:`, err);
+      continue;
+    }
+  }
+  return null;
 }
 
 function htmlToText(html: string): string {
@@ -40,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "Service unavailable." });
+  if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured." });
 
   // Step 1: Extract topic + search query from the question
   const extractPrompt = `From this user question, extract the game or TV show name they're asking about, and a concise search query to look up on its Fandom wiki.
@@ -51,7 +68,7 @@ Return ONLY a JSON object: { "topic": "the game or show name", "query": "search 
 If you can't identify a specific game or show, set topic to the most likely subject.`;
 
   const extractRaw = await callGemini(apiKey, extractPrompt);
-  if (!extractRaw) return NextResponse.json({ error: "Something went wrong. Try again." });
+  if (!extractRaw) return NextResponse.json({ error: "AI service is temporarily unavailable. Please try again in a moment." });
 
   let topic: string;
   let query: string;
