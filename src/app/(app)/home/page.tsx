@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import HomeHero from "@/components/home/HomeHero";
+import HomeContinue from "@/components/home/HomeContinue";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -35,6 +36,8 @@ export default async function HomePage() {
         playingCount={playingCount}
         watchingCount={watchingCount}
       />
+
+      {user && <HomeContinue userId={user.id} />}
     </div>
   );
 }
