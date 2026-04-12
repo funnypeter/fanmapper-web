@@ -73,11 +73,12 @@ export default function HomeTrending() {
 
   return (
     <section>
-      <div className="flex items-baseline justify-between mb-4">
-        <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold">Trending Now</h2>
-          <p className="text-xs text-text-muted mt-0.5">Top-scored on Metacritic this year</p>
+          <img src="https://www.metacritic.com/a/img/icons/metacritic-icon.svg" alt="Metacritic" className="h-5 w-5 rounded" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
         </div>
+        <p className="text-xs text-text-muted">Powered by Metacritic</p>
       </div>
 
       <Rail label="🎮 Games" items={games} />
