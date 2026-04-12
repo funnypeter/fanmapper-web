@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import HomeHero from "@/components/home/HomeHero";
+import HomeWikiChat from "@/components/home/HomeWikiChat";
 import HomeContinue from "@/components/home/HomeContinue";
 import HomeFeaturedChats from "@/components/home/HomeFeaturedChats";
 import HomeForYou from "@/components/home/HomeForYou";
@@ -43,6 +44,8 @@ export default async function HomePage() {
         playingCount={playingCount}
         watchingCount={watchingCount}
       />
+
+      <HomeWikiChat />
 
       {user && <HomeContinue userId={user.id} />}
 

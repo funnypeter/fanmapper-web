@@ -1,57 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Generate candidate wiki subdomains from a game/show title
-function generateCandidates(title: string): string[] {
-  const lower = title.toLowerCase();
-  const noPunct = lower.replace(/[^a-z0-9\s]/g, "");
-  const noSpace = noPunct.replace(/\s+/g, "");
-  const dashed = noPunct.replace(/\s+/g, "-");
-  const words = noPunct.split(/\s+/).filter(Boolean);
-  const firstWord = words[0] ?? "";
-  const firstTwo = words.slice(0, 2).join("");
-  const firstThree = words.slice(0, 3).join("");
-
-  // Extract franchise prefix before ":" or " - " (e.g. "Star Wars" from "Star Wars: Maul - Shadow Lord")
-  const prefixMatch = lower.match(/^(.+?)[\s]*[:–—]|^(.+?)[\s]+-[\s]+/);
-  const franchise = prefixMatch
-    ? (prefixMatch[1] ?? prefixMatch[2] ?? "").replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "")
-    : "";
-
-  // Try variations — more specific (longer) first, less specific last
-  const cleaned = lower
-    .replace(/\bthe\b/g, "")
-    .replace(/\(\d+\)/g, "")
-    .replace(/edition$/i, "")
-    .trim()
-    .replace(/[^a-z0-9\s]/g, "")
-    .replace(/\s+/g, "");
-
-  const candidates = [
-    noSpace,
-    dashed,
-    cleaned,
-    franchise,
-    firstThree,
-    firstTwo,
-    firstWord,
-  ].filter((c, i, arr) => c.length >= 3 && arr.indexOf(c) === i);
-
-  return candidates;
-}
-
-async function checkWikiExists(subdomain: string): Promise<boolean> {
-  try {
-    const res = await fetch(
-      `https://${subdomain}.fandom.com/api.php?action=query&meta=siteinfo&format=json&formatversion=2`,
-      { next: { revalidate: 86400 } } // Cache 1 day
-    );
-    if (!res.ok) return false;
-    const data = await res.json();
-    return !!data.query?.general?.sitename;
-  } catch {
-    return false;
-  }
-}
+import { generateCandidates, checkWikiExists } from "@/lib/services/wikiDetect";
 
 async function getDetectedCategories(wiki: string): Promise<string[]> {
   // First try common guesses
