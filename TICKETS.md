@@ -168,6 +168,44 @@ Interleaved games + TV news with All / Games / TV filter pills. Games from `/api
 
 ---
 
+## ✅ Sprint 14: Home Polish + Cross-Cutting Fixes [SHIPPED]
+
+### ✅ FMW-400: Ask FanCompanion — Wiki Chatbot Search Bar [DONE]
+RAG-powered Q&A on the Home page. Gemini extracts topic + query, `detectWiki()` finds the Fandom wiki, `searchWiki` + `fetchPage` retrieve content, Gemini synthesizes a concise answer. Collapsible answer card with source links that open an in-app wiki modal.
+- `src/app/api/wiki-chat/route.ts` — POST endpoint (2 Gemini calls + Fandom fetch)
+- `src/app/api/wiki-page/route.ts` — GET proxy for server-side wiki page fetch (avoids CORS)
+- `src/lib/services/wikiDetect.ts` — shared `generateCandidates`, `checkWikiExists`, `detectWiki` (extracted from wiki-detect)
+- `src/components/home/HomeWikiChat.tsx` — search bar, rotating hints, collapsible answer, WikiModal
+
+### ✅ FMW-401: GameSpot Guide Card [DONE]
+Gemini with Google Search grounding finds GameSpot guides for games. Shows a thumbnail card above Track Progress in the game detail modal linking to the guide. 24h cache. Falls back to gemini-2.0-flash on 503.
+- `src/app/api/gamespot/guide/route.ts`
+- `src/components/GameSpotGuide.tsx`
+- Inserted into `src/components/GameDetailContent.tsx`
+
+### ✅ FMW-402: Episode Briefing Polish [DONE]
+Improved Characters to Watch section: name on its own line with border dividers, description bumped to text-secondary, characters clickable to open wiki articles when a wiki is available. Added `wikiSubdomain` to BriefingParams.
+
+### ✅ FMW-403: Fix Wiki Detection for Franchise Titles [DONE]
+`generateCandidates` now extracts franchise prefix before `:` or ` - `, and tries first-two/first-three word combos. Fixes "Star Wars: Maul" hitting `star.fandom.com` instead of `starwars.fandom.com`.
+
+### ✅ FMW-404: Fix Back Navigation Stack [DONE]
+Wiki → Briefing → Show Detail now peels one layer at a time. `openWikiArticle` no longer clears `briefingView`. Browser back button respects the 3-level stack.
+
+### ✅ FMW-405: Fix Game Modal Route Navigation [DONE]
+Game modal now auto-closes on route change (Track Progress, Interactive Map, Achievements links were navigating behind the modal). Added `usePathname` listener to `GameModalContext`.
+
+### ✅ FMW-406: Collections Board [DONE]
+Pinterest-style collection boards with 2x2 thumbnail collage covers. 8 themed boards (Elden Ring, Gaming Setup, TV Merch, Collector's Editions, Fan Art, Zelda, Cozy Gaming, Bookshelf). Tap to open, masonry grid of items with heart/save, tags, prices, store attribution.
+- `src/app/(app)/collections/page.tsx`
+
+### ✅ FMW-407: Home Section Polish [DONE]
+- Metacritic inline badge on Trending Now header
+- Unified Community Polls under one heading with 🎮 Games / 📺 TV sub-labels
+- Added `hideHeader` prop to `PollCarousel` and `TVPollCarousel`
+
+---
+
 ## 🔲 Backlog
 
 ### ✅ FMW-100: Game Wiki Auto-Detection [DONE]
@@ -347,9 +385,17 @@ Shows not in `tvRegistry` auto-detect a Fandom wiki via `/api/wiki-detect` and s
 - FMW-307: News feed
 - FMW-308: Page orchestrator + layout
 
-## Upcoming Sprints
+**✅ Sprint 14: Home Polish + Cross-Cutting Fixes [DONE]**
+- FMW-400: Ask FanCompanion chatbot
+- FMW-401: GameSpot Guide card
+- FMW-402: Episode Briefing polish
+- FMW-403: Franchise wiki detection fix
+- FMW-404: Back navigation stack fix
+- FMW-405: Game modal route navigation fix
+- FMW-406: Collections board
+- FMW-407: Home section polish (Metacritic badge, unified polls)
 
-**Sprint 14: Home Polish [NEXT]** — tickets TBD after the first Home walkthrough
+## Upcoming Sprints
 
 **Sprint 5: Platform Expansion**
 - FMW-101: Real PSN trophy import

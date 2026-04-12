@@ -1,6 +1,6 @@
 # FanCompanion
 
-A Next.js web app for tracking **game and TV libraries** with Fandom wiki integration, Steam imports, achievements, interactive maps, episode tracking, AI episode briefings, stats dashboards, community polls, live chats, and trending feeds from Metacritic, GameSpot, and TVGuide. The **Home hub** at `/home` unifies personalized recommendations, Continue Watching/Playing, featured live chats, polls, recent activity, and news across both games and TV.
+A Next.js web app for tracking **game and TV libraries** with Fandom wiki integration, Steam imports, achievements, interactive maps, episode tracking, AI episode briefings, stats dashboards, community polls, live chats, and trending feeds from Metacritic, GameSpot, and TVGuide. The **Home hub** at `/home` features an **Ask FanCompanion** chatbot (RAG-powered wiki Q&A), personalized recommendations, Continue Watching/Playing, featured live chats, polls, recent activity, and news. **Collections** at `/collections` has Pinterest-style boards of curated merch, figures, art, and gear.
 
 > Repo and project folder are still named `FanMapper-Web` / `fanmapper-web` for git-history stability. The user-facing brand is **FanCompanion**. Internal User-Agent strings in `fandom.ts` and `api/img/route.ts` intentionally keep the legacy name.
 
@@ -62,6 +62,19 @@ The personalized hub at `/home`. Server component orchestrator + 8 client sectio
 - `src/components/home/HomeRecentActivity.tsx` — Unified timeline merging `user_games`, `user_shows`, and `tv_wiki_progress` by timestamp. Relative times. Game/show rows open modals.
 - `src/components/home/HomeNewsFeed.tsx` — Interleaved games/TV news with All/Games/TV filter pills. Fetches `/api/news` + `/api/tv/news`.
 - `src/app/api/tv/news/route.ts` — Generic TV news (TVLine + Deadline RSS, unfiltered). Distinct from `/api/tv/tvguide` which requires a `?show=` param for per-show keyword scoring.
+- `src/components/home/HomeWikiChat.tsx` — **Ask FanCompanion** chatbot search bar. RAG pipeline: user question → Gemini topic extraction → wiki detection → Fandom search + fetch → Gemini answer synthesis. Collapsible answer card with source links that open an in-app WikiModal (fetches through `/api/wiki-page` server proxy to avoid CORS).
+- `src/app/api/wiki-chat/route.ts` — POST endpoint for the chatbot. Two Gemini calls (extract topic, synthesize answer) + Fandom wiki search + page fetch. Tries `gemini-2.5-flash` first, falls back to `gemini-2.0-flash` on 503/429.
+- `src/app/api/wiki-page/route.ts` — GET proxy for server-side wiki page fetch. Needed because Fandom blocks direct browser requests (CORS). Used by the WikiModal in `HomeWikiChat`.
+- `src/lib/services/wikiDetect.ts` — Shared wiki detection utilities extracted from `wiki-detect/route.ts`. Exports `generateCandidates()`, `checkWikiExists()`, `getWikiName()`, `detectWiki()`. Used by both `/api/wiki-detect` and `/api/wiki-chat`.
+
+### Collections
+
+- `src/app/(app)/collections/page.tsx` — Pinterest-style collection boards. Two-level: board grid (2x2 thumbnail collage covers) → board detail (masonry grid of items). 8 themed boards with dummy data. Heart/save toggle, tag badges, price/store attribution. Uses IGDB cover art (`t_cover_big`) and TMDB posters for reliable images.
+
+### Game Detail Additions
+
+- `src/components/GameSpotGuide.tsx` — Card on game detail page showing a GameSpot guide link if one exists. Uses Gemini with Google Search grounding via `/api/gamespot/guide?game={title}`. Results cached 24h.
+- `src/app/api/gamespot/guide/route.ts` — Gemini search grounding endpoint to find GameSpot game guides.
 
 ### TV Section
 
@@ -150,7 +163,9 @@ Game detail pages show a News card filtered to articles mentioning the game:
 - **Game registry is the source of truth** for curated game wikis — `GAME_REGISTRY` drives Home "For You" games, Games Discover trending, wiki configs, and cover art
 - **TV registry is the source of truth** for curated TV wikis — `TV_SHOW_REGISTRY` drives TV Discover trending and wiki mappings; auto detection is the fallback for the long tail
 - **Chat components accept `hideHeader`** — `<TrendingChats />` and `<TVTrendingChats />` both accept an optional `hideHeader?: boolean` prop so a parent section can own the heading. Used by `HomeFeaturedChats` to avoid duplicated h3s under the big "Live Now" wrapper.
-- **No Gemini on the Home page** — the Home hub optimizes for low latency on first paint, so recommendations, polls surfaces, and news use free/cached sources (TMDB, Metacritic, IGDB registry, RSS). Gemini calls are reserved for per-game/per-show surfaces (episode briefings, poll generation, etc.)
+- **No Gemini on Home page load** — the Home hub optimizes for low latency on first paint, so recommendations, polls, and news use free/cached sources (TMDB, Metacritic, IGDB registry, RSS). The only Gemini call on Home is **Ask FanCompanion**, which is user-initiated (on submit, not on page load).
+- **Fandom API must be server-proxied for wiki content** — direct browser → Fandom requests fail (CORS). Always fetch wiki page HTML through `/api/wiki-page` or server components. The existing `searchAndFetchPage` in `fandom.ts` works server-side but not from client components.
+- **Poll and chat components accept `hideHeader`** — `PollCarousel`, `TVPollCarousel`, `TrendingChats`, and `TVTrendingChats` all accept `hideHeader?: boolean` so parent sections can own the heading. Used by `HomeFeaturedChats` and the unified polls section on Home.
 - **Status colors**: playing/watching=primary purple, completed=success green, backlog=xp yellow, wishlist=accent teal, dropped=error red
 - **All state changes save to Supabase immediately** — no "Save" buttons except for review text and playtime input
 - **Bottom nav**: Home, TV, Games, Collections, Profile — Games highlights on `/explore`, `/library`, `/stats`, `/game`, `/wiki`; TV highlights on any `/tv/*` route
@@ -177,4 +192,7 @@ Game detail pages show a News card filtered to articles mentioning the game:
 - **Debug a TV show detail**: Check `/api/tv/tmdb-{id}` directly to see the TMDB response shape
 - **Debug the episode briefing**: Hit `/api/tv/briefing?show=...&season=1&episode=1&episodeTitle=Pilot` — errors typically come from Gemini JSON parsing or a missing `GEMINI_API_KEY`
 - **Debug an auto wiki**: Check `/api/wiki-detect?wiki={subdomain}` to see what categories are detected
+- **Debug the wiki chatbot**: POST to `/api/wiki-chat` with `{ "question": "..." }`. Errors typically come from Gemini (503/model mismatch) or wiki detection (topic extraction). Check Vercel function logs for `console.error` output.
+- **Debug the wiki page proxy**: Hit `/api/wiki-page?wiki={subdomain}&title={page}` — returns `{ title, html }` or `{ html: null }` if the page doesn't exist.
+- **Debug the GameSpot guide**: Hit `/api/gamespot/guide?game={title}` — returns `{ found, url, title, thumbnail }` or `{ found: false }`. Uses Gemini search grounding; may fail on 503.
 - **Build locally**: `npm run build` (delete `.next` first if you hit EPERM errors on Windows OneDrive)
