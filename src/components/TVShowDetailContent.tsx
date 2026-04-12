@@ -435,6 +435,7 @@ export default function TVShowDetailContent({ showId }: { showId: string }) {
                                 season: ep.seasonNumber,
                                 episode: ep.episodeNumber,
                                 episodeTitle: ep.title,
+                                wikiSubdomain: wikiSubdomain ?? null,
                               })}
                               className="shrink-0 px-2 py-1 rounded-lg bg-accent/15 hover:bg-accent/25 text-accent text-[10px] font-semibold transition"
                             >

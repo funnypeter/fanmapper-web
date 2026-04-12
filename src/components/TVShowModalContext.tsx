@@ -9,6 +9,7 @@ interface BriefingParams {
   season: number;
   episode: number;
   episodeTitle: string;
+  wikiSubdomain?: string | null;
 }
 
 interface TVShowModalContextType {
@@ -78,6 +79,7 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
 }
 
 function BriefingView({ params, onBack }: { params: BriefingParams; onBack: () => void }) {
+  const { openWikiArticle } = useContext(TVShowModalContext);
   const [briefing, setBriefing] = useState<{ recap: string; characters: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,14 +135,27 @@ function BriefingView({ params, onBack }: { params: BriefingParams; onBack: () =
               <span className="text-lg">👥</span>
               <h3 className="font-bold text-sm">Characters to Watch</h3>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {briefing.characters.map((char, i) => {
                 const [name, ...descParts] = char.split(" - ");
                 const desc = descParts.join(" - ");
+                const canLink = params.wikiSubdomain && name.trim();
+
                 return (
-                  <div key={i} className="flex gap-2">
-                    <span className="text-primary font-semibold text-sm shrink-0">{name}</span>
-                    {desc && <span className="text-sm text-text-muted">— {desc}</span>}
+                  <div key={i} className="border-b border-border/20 last:border-b-0 pb-3 last:pb-0">
+                    {canLink ? (
+                      <button
+                        onClick={() => openWikiArticle(params.wikiSubdomain!, name.trim())}
+                        className="text-primary font-bold text-sm hover:text-primary-light transition"
+                      >
+                        {name.trim()} →
+                      </button>
+                    ) : (
+                      <span className="text-primary font-bold text-sm">{name.trim()}</span>
+                    )}
+                    {desc && (
+                      <p className="text-sm text-text-secondary leading-relaxed mt-1">{desc.trim()}</p>
+                    )}
                   </div>
                 );
               })}
