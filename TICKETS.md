@@ -106,6 +106,125 @@
 
 ---
 
+## 🔲 Home Section — Personalized Hub
+
+The Home route (`/home`) is currently a "Coming soon" placeholder. Goal: turn it into the app's engagement anchor — an amalgamation of the best content from games, TV, polls, chats, news, and recommendations, tailored to the user when signed in.
+
+**Design principles:**
+- **Personalized first** — Continue + For You above the fold for returning users
+- **Density over minimalism** — 8 sections, trim later based on usage
+- **Chats prominently featured** — treated as a hero-style section with its own visual weight, not a small rail
+- **Cross-media** — games and TV always mixed, since Home is the one place they converge
+- **Free recommendation sources** — TMDB `recommendations` + IGDB `similar_games` / registry; no Gemini calls on Home (latency matters here)
+- **Mobile-first** — horizontal rails, big tap targets, bottom nav already wired
+- **Empty-state graceful** — logged-out users see trending/polls/chats previews instead of blank personalized rails
+
+**Section order (top → bottom):**
+1. Personalized Hero (FMW-300)
+2. Continue (FMW-301)
+3. Live Chats — Featured (FMW-302)
+4. For You (FMW-303)
+5. Trending Now (FMW-304)
+6. Community Polls (FMW-305 — reuse existing carousels)
+7. Recent Activity (FMW-306)
+8. Latest News (FMW-307)
+
+### FMW-300: Home Hero — Personalized Greeting [Core]
+**Description:** Top-of-page hero with personalized greeting, time-of-day awareness, and a quick stats band.
+**Acceptance Criteria:**
+- Greeting tailored to time of day (Good morning / afternoon / evening / up late)
+- Display name pulled from `profiles.display_name` (fallback to email prefix)
+- Stat chips: games playing, shows watching, total games tracked, total shows tracked
+- Logged-out state: hero pitch + CTAs to Sign Up / Browse Games / Browse TV
+- Gradient background with blurred glow to match the brand
+- Server component fetches the stats; client component handles rendering
+**Estimate:** S
+
+### FMW-301: Home Continue Row [Core]
+**Description:** Horizontal scroll of in-progress games and shows, interleaved. Most engagement-critical section — this is why users return daily.
+**Acceptance Criteria:**
+- Query `user_games` where status='playing' + `user_shows` where status='watching', ordered by `updated_at desc`
+- Interleave so games and shows mix (not two separate rails)
+- Each card shows cover art, title, a "Game" or "TV" badge, and a subtitle (`{hours}h played` or `S{n} · E{n}`)
+- Clicking a card opens the existing game modal or TV show modal (use `useGameModal().openGame` / `useTVShowModal().openShow`)
+- Hide the entire section when there are zero in-progress items
+- Logged-out: section doesn't render at all
+**Estimate:** M
+
+### FMW-302: Home Featured Chats [Core — prominently featured]
+**Description:** Live Chats is the signature section on Home — bigger visual treatment than on Explore/TV Discover pages.
+**Acceptance Criteria:**
+- Wrapped in a gradient card with "🔴 Live Now — Join the conversation" as a 2xl/3xl heading
+- Subtitle emphasizing community activity ("Thousands of fans are talking right now")
+- Stacks `<TrendingChats />` (games) and `<TVTrendingChats />` (TV) with small "🎮 Games" and "📺 TV Shows" labels between them
+- Reuses existing chat components as-is; no new data sources needed
+- Red/error glow accent + primary glow to make the section visually dominant
+- Consider extracting shared chat data to `src/lib/data/chatRooms.ts` as a future refactor
+**Estimate:** S (it's a wrapper; the heavy lifting is already built)
+
+### FMW-303: Home For You — Cross-Media Recommendations [Core]
+**Description:** Hand-picked games and shows based on the user's library (or trending when empty).
+**Acceptance Criteria:**
+- If logged in with library items: pull recommendations for the user's top show via TMDB `/tv/{id}/recommendations` (already cached in `/api/tv/[id]`) and similar games via a new `similar_games` field on `/api/games/[id]` (add to IGDB query) or fall back to `GAME_REGISTRY` shuffled by genre overlap
+- If logged out / empty library: fall back to trending games + trending shows (same sources as FMW-304)
+- Two horizontal rails: Games (120px wide), Shows (120px wide)
+- Each card clicks into the respective modal
+- Header: "For You" with subcopy "Hand-picked based on {top_show or top_genre}"
+**Estimate:** M
+
+### FMW-304: Home Trending Now [Core]
+**Description:** What the rest of the community is engaging with right now.
+**Acceptance Criteria:**
+- Games rail: `/api/metacritic` top-scored recent releases (existing endpoint)
+- Shows rail: `/api/tv/trending` TMDB weekly trending (existing endpoint)
+- Metacritic cards open metacritic external link (no internal ID); TMDB trending cards open the TV modal
+- Score badges on cards where available
+- Header: "Trending Now" with a small "updated weekly" or "live" timestamp
+**Estimate:** S
+
+### FMW-305: Home Community Polls [Reuse]
+**Description:** Drop `<PollCarousel />` and `<TVPollCarousel />` onto the Home page, stacked.
+**Acceptance Criteria:**
+- Both existing carousels render with their built-in empty-state handling
+- No new code beyond imports — these widgets are already self-fetching and self-contained
+- Consider a subtle section wrapper/divider if visual continuity suffers
+**Estimate:** XS
+
+### FMW-306: Home Recent Activity [Feature]
+**Description:** Feed of the user's recent actions — games updated, shows updated, episodes checked, achievements unlocked.
+**Acceptance Criteria:**
+- Query `user_games` + `user_shows` ordered by `updated_at desc`, limit 10
+- Also pull recent `tv_wiki_progress` rows (last 5 episodes checked)
+- Each activity item: icon, short sentence, relative timestamp ("2h ago")
+- Clicking an item opens the relevant modal or wiki view
+- Logged-out: section hidden entirely
+**Estimate:** M
+
+### FMW-307: Home News Feed [Feature]
+**Description:** Interleaved game + TV news from GameSpot, IGN, Kotaku, TVGuide feeds.
+**Acceptance Criteria:**
+- Fetch `/api/news` (games) + `/api/tv/tvguide` in parallel
+- Interleave so articles alternate between game and TV sources
+- Filter chip at the top: All / Games / TV
+- Cards show thumbnail, headline, source logo, relative time
+- Link out to the article in a new tab
+- Limit to ~12 items initially with a "See more" link
+**Estimate:** M
+
+### FMW-308: Home Page Orchestrator + Layout [Core — ties it all together]
+**Description:** The Home server component that assembles all sections, handles logged-in vs logged-out branching, and manages section ordering + empty-state hiding.
+**Acceptance Criteria:**
+- `src/app/(app)/home/page.tsx` — server component
+- Fetches user + basic stats in parallel using `Promise.all`
+- Passes `userId` and counts down to the client components
+- Section order matches the design principles doc at the top of this section
+- Logged-out: skips `HomeContinue` and `HomeRecentActivity` entirely (no empty shells)
+- All sections wrapped in `<div className="space-y-12">` for consistent spacing
+- Bottom nav "Home" already points at `/home` — no nav changes needed
+**Estimate:** S
+
+---
+
 ## 🔲 Backlog
 
 ### ✅ FMW-100: Game Wiki Auto-Detection [DONE]
@@ -275,6 +394,17 @@ Shows not in `tvRegistry` auto-detect a Fandom wiki via `/api/wiki-detect` and s
 - FMW-217: Rebrand to FanCompanion
 
 ## Upcoming Sprints
+
+**Sprint 13: Home Section — Personalized Hub [NEXT]**
+- FMW-308: Page orchestrator + layout (scaffold first)
+- FMW-300: Personalized hero
+- FMW-301: Continue row
+- FMW-302: Featured chats (prominent)
+- FMW-303: For You recommendations
+- FMW-304: Trending now
+- FMW-305: Community polls (drop-in)
+- FMW-306: Recent activity
+- FMW-307: News feed
 
 **Sprint 5: Platform Expansion**
 - FMW-101: Real PSN trophy import
