@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface CollectionItem {
   title: string;
@@ -170,6 +170,25 @@ export default function CollectionsPage() {
   const [openBoard, setOpenBoard] = useState<Board | null>(null);
   const [saved, setSaved] = useState<Set<string>>(new Set());
 
+  const openBoardWithHistory = useCallback((board: Board) => {
+    setOpenBoard(board);
+    window.history.pushState({ collectionsBoard: true }, "");
+  }, []);
+
+  const closeBoard = useCallback(() => {
+    setOpenBoard(null);
+  }, []);
+
+  useEffect(() => {
+    function handlePopState() {
+      if (openBoard) {
+        setOpenBoard(null);
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [openBoard]);
+
   function toggleSave(key: string) {
     setSaved((prev) => {
       const next = new Set(prev);
@@ -184,7 +203,7 @@ export default function CollectionsPage() {
       <div>
         {/* Board detail header */}
         <button
-          onClick={() => setOpenBoard(null)}
+          onClick={() => { closeBoard(); window.history.back(); }}
           className="flex items-center gap-2 text-primary hover:text-primary-light transition mb-5"
         >
           <span>←</span>
@@ -272,7 +291,7 @@ export default function CollectionsPage() {
         {BOARDS.map((board) => (
           <button
             key={board.id}
-            onClick={() => setOpenBoard(board)}
+            onClick={() => openBoardWithHistory(board)}
             className="break-inside-avoid w-full text-left group"
           >
             <div className="rounded-2xl overflow-hidden border border-border/50 bg-surface hover:border-primary/30 transition-all hover:shadow-xl hover:shadow-primary/5">
