@@ -52,19 +52,23 @@ Return ONLY the JSON, no other text.`,
       return NextResponse.json({ found: false });
     }
 
-    // Validate the URL actually relates to this game — Gemini can hallucinate URLs
-    const gameWords = gameTitle.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter((w: string) => w.length > 2 && !["the", "and", "for"].includes(w));
+    // Validate the URL itself contains a game-relevant keyword — Gemini hallucates both URLs and titles
+    const gameWords = gameTitle.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/).filter((w: string) => w.length >= 2 && !["the", "and", "for", "of", "in"].includes(w));
     const urlLower = result.url.toLowerCase();
-    const titleLower = (result.title || "").toLowerCase();
-    const matchesGame = gameWords.some((w: string) => urlLower.includes(w) || titleLower.includes(w));
-    if (!matchesGame) {
+    const urlMatchesGame = gameWords.some((w: string) => urlLower.includes(w));
+    if (!urlMatchesGame) {
       return NextResponse.json({ found: false });
     }
 
-    // Verify the URL is reachable and not a 404
+    // Fetch the actual page and verify the game name appears in the HTML title
     try {
-      const check = await fetch(result.url, { method: "HEAD", redirect: "follow" });
-      if (!check.ok) return NextResponse.json({ found: false });
+      const pageRes = await fetch(result.url, { redirect: "follow" });
+      if (!pageRes.ok) return NextResponse.json({ found: false });
+      const html = await pageRes.text();
+      const pageTitleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+      const pageTitle = (pageTitleMatch?.[1] ?? "").toLowerCase();
+      const pageMatchesGame = gameWords.some((w: string) => pageTitle.includes(w));
+      if (!pageMatchesGame) return NextResponse.json({ found: false });
     } catch {
       return NextResponse.json({ found: false });
     }
@@ -74,8 +78,6 @@ Return ONLY the JSON, no other text.`,
       url: result.url,
       title: result.title || `${gameTitle} Guide`,
       thumbnail: result.thumbnail || null,
-    }, {
-      headers: { "Cache-Control": "public, max-age=86400, s-maxage=86400" },
     });
   } catch {
     return NextResponse.json({ found: false });
