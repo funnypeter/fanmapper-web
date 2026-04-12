@@ -55,8 +55,20 @@ export default async function HomePage() {
 
       <HomeTrending />
 
-      <PollCarousel />
-      <TVPollCarousel />
+      <section>
+        <h2 className="text-xl font-bold mb-2">Community Polls</h2>
+        <p className="text-text-secondary text-sm mb-5">Vote on this week&apos;s hot topics</p>
+        <div className="space-y-5">
+          <div>
+            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">🎮 Games</p>
+            <PollCarousel hideHeader />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2">📺 TV Shows</p>
+            <TVPollCarousel hideHeader />
+          </div>
+        </div>
+      </section>
 
       {user && <HomeRecentActivity userId={user.id} />}
 

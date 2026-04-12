@@ -5,7 +5,7 @@ import PollCard from "./PollCard";
 import PollModal from "./PollModal";
 import type { PollData } from "./PollCard";
 
-export default function PollCarousel() {
+export default function PollCarousel({ hideHeader = false }: { hideHeader?: boolean } = {}) {
   const [polls, setPolls] = useState<PollData[]>([]);
   const [selectedPoll, setSelectedPoll] = useState<PollData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,11 +34,15 @@ export default function PollCarousel() {
   if (loading || polls.length === 0) return null;
 
   return (
-    <div className="mb-12">
-      <h3 className="text-xl font-bold mb-2">Community Polls</h3>
-      <p className="text-text-secondary text-sm mb-5">
-        Vote on this week&apos;s hot topics
-      </p>
+    <div className={hideHeader ? "" : "mb-12"}>
+      {!hideHeader && (
+        <>
+          <h3 className="text-xl font-bold mb-2">Community Polls</h3>
+          <p className="text-text-secondary text-sm mb-5">
+            Vote on this week&apos;s hot topics
+          </p>
+        </>
+      )}
 
       <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
         {polls.map((poll) => (
