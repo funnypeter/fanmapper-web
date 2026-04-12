@@ -4,6 +4,8 @@ import HomeContinue from "@/components/home/HomeContinue";
 import HomeFeaturedChats from "@/components/home/HomeFeaturedChats";
 import HomeForYou from "@/components/home/HomeForYou";
 import HomeTrending from "@/components/home/HomeTrending";
+import PollCarousel from "@/components/PollCarousel";
+import TVPollCarousel from "@/components/TVPollCarousel";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -47,6 +49,9 @@ export default async function HomePage() {
       <HomeForYou isLoggedIn={!!user} />
 
       <HomeTrending />
+
+      <PollCarousel />
+      <TVPollCarousel />
     </div>
   );
 }
