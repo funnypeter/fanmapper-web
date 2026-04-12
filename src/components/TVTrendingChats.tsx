@@ -211,18 +211,20 @@ function TVChatModal({ room, onClose }: { room: ChatRoom; onClose: () => void })
   );
 }
 
-export default function TVTrendingChats() {
+export default function TVTrendingChats({ hideHeader = false }: { hideHeader?: boolean } = {}) {
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
 
   return (
-    <div className="mb-10">
-      <div className="flex items-center gap-2 mb-5">
-        <h3 className="text-xl font-bold">Trending Chats</h3>
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-error/10">
-          <div className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" />
-          <span className="text-[10px] font-semibold text-error uppercase">Live</span>
+    <div className={hideHeader ? "" : "mb-10"}>
+      {!hideHeader && (
+        <div className="flex items-center gap-2 mb-5">
+          <h3 className="text-xl font-bold">Trending Chats</h3>
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-error/10">
+            <div className="w-1.5 h-1.5 rounded-full bg-error animate-pulse" />
+            <span className="text-[10px] font-semibold text-error uppercase">Live</span>
+          </div>
         </div>
-      </div>
+      )}
       <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
         {TV_CHAT_ROOMS.map((room) => (
           <TVLiveChat key={room.title} room={room} onSelect={setSelectedRoom} />
