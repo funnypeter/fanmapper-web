@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const revalidate = 3600;
+
 export async function GET(request: NextRequest) {
   const gameTitle = request.nextUrl.searchParams.get("game");
   if (!gameTitle) return NextResponse.json({ found: false });
