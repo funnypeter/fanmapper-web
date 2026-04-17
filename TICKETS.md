@@ -210,6 +210,11 @@ For games with `hasDetailedGameData` flag, fetch guides from `game-data-two.verc
 - `src/components/GameGuidesCarousel.tsx` — new carousel component with 404 fallback to `GameSpotGuide`
 - `src/components/GameDetailContent.tsx` — conditionally render carousel (above Videos) vs old guide card
 
+### 🔲 FMW-501: Cyberpunk 2077 Build Planner [TODO]
+Mobile-friendly build planner for Cyberpunk 2077. Card on game detail page opens a full-screen overlay with level/attribute/perk management. Attributes shown as expandable rows with +/- controls; perks listed inside expanded sections. Includes 4 recommended builds (Netrunner, Samurai, Solo, Ninja).
+- `src/components/Cyberpunk2077BuildPlanner.tsx` — full planner UI with attribute/perk state management
+- `src/components/BuildPlannerCard.tsx` — entry-point card, renders on game detail when `hasDetailedGameData` is set
+
 ---
 
 ## 🔲 Backlog
@@ -403,6 +408,7 @@ Shows not in `tvRegistry` auto-detect a Fandom wiki via `/api/wiki-detect` and s
 
 **🔲 Sprint 15: Game Data Service Integration**
 - FMW-500: Detailed guides carousel from game-data service
+- FMW-501: Cyberpunk 2077 build planner
 
 ## Upcoming Sprints
 

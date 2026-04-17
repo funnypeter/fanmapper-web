@@ -13,6 +13,7 @@ import GameChat from "@/components/GameChat";
 import GameSpotArticles from "@/components/GameSpotArticles";
 import GameSpotGuide from "@/components/GameSpotGuide";
 import GameGuidesCarousel from "@/components/GameGuidesCarousel";
+import BuildPlannerCard from "@/components/BuildPlannerCard";
 
 interface GameData {
   id: string;
@@ -317,6 +318,8 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
           )}
         </div>
       )}
+
+      {wikiConfig?.hasDetailedGameData && <BuildPlannerCard />}
 
       <div className="mb-6"><GameChat gameTitle={game.title} /></div>
       <GameSpotArticles gameTitle={game.title} />
