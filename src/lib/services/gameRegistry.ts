@@ -21,6 +21,7 @@ export interface GameWikiConfig {
   infoboxTemplates: Record<string, string>;
   maps: string[];
   mapUrl?: string; // External interactive map URL to embed
+  hasDetailedGameData?: boolean; // Fetch extra data (guides, etc.) from game-data service
 }
 
 export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
@@ -147,7 +148,9 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     genre: "Action RPG",
     categories: { characters: "Cyberpunk 2077 Characters", weapons: "Cyberpunk 2077 Weapons", quests: "Cyberpunk 2077 Quests", locations: "Cyberpunk 2077 Locations" },
     infoboxTemplates: {},
-    maps: [],
+    maps: ["Night City 2077"],
+    mapUrl: "https://cyberpunk.fandom.com/wiki/Map:Night_City_2077",
+    hasDetailedGameData: true,
   },
   "minecraft": {
     gameTitle: "Minecraft",

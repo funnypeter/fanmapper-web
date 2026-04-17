@@ -204,6 +204,12 @@ Pinterest-style collection boards with 2x2 thumbnail collage covers. 8 themed bo
 - Unified Community Polls under one heading with 🎮 Games / 📺 TV sub-labels
 - Added `hideHeader` prop to `PollCarousel` and `TVPollCarousel`
 
+### 🔲 FMW-500: Detailed Guides Carousel from Game Data Service [TODO]
+For games with `hasDetailedGameData` flag, fetch guides from `game-data-two.vercel.app/game/<key>` and display a horizontal carousel (image + title + link) above Videos on the game detail page. Falls back to the Gemini-powered GameSpot Guide card on 404.
+- `src/lib/services/gameRegistry.ts` — added `hasDetailedGameData` flag to `GameWikiConfig`, enabled for Cyberpunk 2077
+- `src/components/GameGuidesCarousel.tsx` — new carousel component with 404 fallback to `GameSpotGuide`
+- `src/components/GameDetailContent.tsx` — conditionally render carousel (above Videos) vs old guide card
+
 ---
 
 ## 🔲 Backlog
@@ -394,6 +400,9 @@ Shows not in `tvRegistry` auto-detect a Fandom wiki via `/api/wiki-detect` and s
 - FMW-405: Game modal route navigation fix
 - FMW-406: Collections board
 - FMW-407: Home section polish (Metacritic badge, unified polls)
+
+**🔲 Sprint 15: Game Data Service Integration**
+- FMW-500: Detailed guides carousel from game-data service
 
 ## Upcoming Sprints
 
