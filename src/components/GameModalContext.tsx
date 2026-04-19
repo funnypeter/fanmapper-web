@@ -46,7 +46,7 @@ function WikiArticleView({ wiki, pageTitle, onBack }: { wiki: string; pageTitle:
         <span>←</span>
         <span className="text-sm font-medium">Back</span>
       </button>
-      <h2 className="text-2xl font-bold mb-4">{pageTitle}</h2>
+      <h2 className="text-2xl font-bold mb-4">{pageTitle.replace(/_/g, " ")}</h2>
 
       {loading ? (
         <div className="flex justify-center py-16">
