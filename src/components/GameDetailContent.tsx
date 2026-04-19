@@ -12,6 +12,9 @@ import AutoWikiCard from "@/components/AutoWikiCard";
 import GameChat from "@/components/GameChat";
 import GameSpotArticles from "@/components/GameSpotArticles";
 import GameSpotGuide from "@/components/GameSpotGuide";
+import GameGuidesCarousel from "@/components/GameGuidesCarousel";
+import BuildPlannerCard from "@/components/BuildPlannerCard";
+import QuestProgressCard from "@/components/QuestProgressCard";
 
 interface GameData {
   id: string;
@@ -278,7 +281,7 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
         </div>
       )}
 
-      <GameSpotGuide gameTitle={game.title} />
+      {!wikiConfig?.hasDetailedGameData && <GameSpotGuide gameTitle={game.title} />}
 
       {!wikiKey && <AutoWikiCard gameTitle={game.title} />}
 
@@ -317,8 +320,16 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
         </div>
       )}
 
+      {wikiConfig?.hasDetailedGameData && wikiKey && (
+        <QuestProgressCard gameTitle={game.title} gameKey={wikiKey} />
+      )}
+
+      {wikiConfig?.availableTools?.includes("cyberpunk-build-planner") && <BuildPlannerCard />}
+
       <div className="mb-6"><GameChat gameTitle={game.title} /></div>
       <GameSpotArticles gameTitle={game.title} />
+
+      {wikiConfig?.hasDetailedGameData && <GameGuidesCarousel gameTitle={game.title} />}
 
       {game.videos.length > 0 && (
         <div className="mb-8">

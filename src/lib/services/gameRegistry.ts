@@ -21,6 +21,8 @@ export interface GameWikiConfig {
   infoboxTemplates: Record<string, string>;
   maps: string[];
   mapUrl?: string; // External interactive map URL to embed
+  hasDetailedGameData?: boolean; // Fetch extra data (guides, etc.) from game-data service
+  availableTools?: string[]; // Game-specific tools to show on detail page (e.g. "build-planner")
 }
 
 export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
@@ -33,7 +35,8 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Characters", items: "Items", weapons: "Weapons", armor: "Armor", locations: "Locations", bosses: "Bosses", quests: "Quests" },
     infoboxTemplates: { character: "Infobox character", weapon: "Infobox weapon", boss: "Infobox boss" },
     maps: ["The Lands Between"],
-    mapUrl: "https://eldenring.wiki.fextralife.com/Interactive+Map",
+    mapUrl: "https://eldenring.fandom.com/wiki/Map:Lands_Between",
+    hasDetailedGameData: true,
   },
   "skyrim": {
     gameTitle: "The Elder Scrolls V: Skyrim",
@@ -44,7 +47,8 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Skyrim: Characters", items: "Skyrim: Items", weapons: "Skyrim: Weapons", armor: "Skyrim: Armor", locations: "Skyrim: Locations", quests: "Skyrim: Quests" },
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Skyrim Map"],
-    mapUrl: "https://srmap.uesp.net/",
+    mapUrl: "https://elderscrolls.fandom.com/wiki/Special:AllMaps",
+    hasDetailedGameData: true,
   },
   "fallout-4": {
     gameTitle: "Fallout 4",
@@ -55,7 +59,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Fallout 4 characters", items: "Fallout 4 items", weapons: "Fallout 4 weapons", armor: "Fallout 4 armor and clothing", locations: "Fallout 4 locations", quests: "Fallout 4 quests" },
     infoboxTemplates: { character: "Infobox character", weapon: "Infobox item" },
     maps: ["Commonwealth Map"],
-    mapUrl: "https://fo4map.com/",
+    mapUrl: "https://fallout.fandom.com/wiki/Special:AllMaps",
   },
   "genshin-impact": {
     gameTitle: "Genshin Impact",
@@ -66,7 +70,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Playable Characters", items: "Items", weapons: "Weapons", locations: "Locations", bosses: "Bosses", quests: "Archon Quests" },
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Teyvat Interactive Map"],
-    mapUrl: "https://act.hoyolab.com/ys/app/interactive-map/index.html",
+    mapUrl: "https://genshin-impact.fandom.com/wiki/Special:AllMaps",
   },
   "zelda-totk": {
     gameTitle: "Zelda: Tears of the Kingdom",
@@ -77,7 +81,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Tears of the Kingdom Characters", items: "Tears of the Kingdom Items", weapons: "Tears of the Kingdom Weapons", locations: "Tears of the Kingdom Locations", bosses: "Tears of the Kingdom Bosses" },
     infoboxTemplates: { character: "Infobox Character", item: "Infobox Item" },
     maps: ["Hyrule Map"],
-    mapUrl: "https://www.zeldadungeon.net/tears-of-the-kingdom-interactive-map/",
+    mapUrl: "https://zelda.fandom.com/wiki/Special:AllMaps",
   },
   "witcher-3": {
     gameTitle: "The Witcher 3: Wild Hunt",
@@ -88,6 +92,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "The Witcher 3 characters", weapons: "The Witcher 3 weapons", armor: "The Witcher 3 armor", locations: "The Witcher 3 locations", quests: "The Witcher 3 quests" },
     infoboxTemplates: { character: "Infobox Character" },
     maps: [],
+    hasDetailedGameData: true,
   },
   "gta-v": {
     gameTitle: "Grand Theft Auto V",
@@ -147,7 +152,10 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     genre: "Action RPG",
     categories: { characters: "Cyberpunk 2077 Characters", weapons: "Cyberpunk 2077 Weapons", quests: "Cyberpunk 2077 Quests", locations: "Cyberpunk 2077 Locations" },
     infoboxTemplates: {},
-    maps: [],
+    maps: ["Night City 2077"],
+    mapUrl: "https://cyberpunk.fandom.com/wiki/Map:Night_City_2077",
+    hasDetailedGameData: true,
+    availableTools: ["cyberpunk-build-planner"],
   },
   "minecraft": {
     gameTitle: "Minecraft",

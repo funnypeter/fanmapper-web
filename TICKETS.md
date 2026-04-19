@@ -204,6 +204,26 @@ Pinterest-style collection boards with 2x2 thumbnail collage covers. 8 themed bo
 - Unified Community Polls under one heading with 🎮 Games / 📺 TV sub-labels
 - Added `hideHeader` prop to `PollCarousel` and `TVPollCarousel`
 
+### 🔲 FMW-500: Detailed Guides Carousel from Game Data Service [TODO]
+For games with `hasDetailedGameData` flag, fetch guides from `game-data-two.vercel.app/game/<key>` and display a horizontal carousel (image + title + link) above Videos on the game detail page. Falls back to the Gemini-powered GameSpot Guide card on 404.
+- `src/lib/services/gameRegistry.ts` — added `hasDetailedGameData` flag to `GameWikiConfig`, enabled for Cyberpunk 2077
+- `src/components/GameGuidesCarousel.tsx` — new carousel component with 404 fallback to `GameSpotGuide`
+- `src/components/GameDetailContent.tsx` — conditionally render carousel (above Videos) vs old guide card
+
+### 🔲 FMW-501: Cyberpunk 2077 Build Planner [TODO]
+Mobile-friendly build planner for Cyberpunk 2077. Card on game detail page opens a full-screen overlay with level/attribute/perk management. Attributes shown as expandable rows with +/- controls; perks listed inside expanded sections. Includes 4 recommended builds (Netrunner, Samurai, Solo, Ninja).
+- `src/components/Cyberpunk2077BuildPlanner.tsx` — full planner UI with attribute/perk state management
+- `src/components/BuildPlannerCard.tsx` — entry-point card, renders on game detail when `hasDetailedGameData` is set
+
+### 🔲 FMW-503: Quest Progress Tracking from Game Data Service [TODO]
+Main quest progress card for games with `hasDetailedGameData` whose API response includes a `quests` field. Shows a completion progress bar, "Continue with next quest" link to the Fandom walkthrough (proxied through in-app wiki viewer), and an expandable sectioned quest list with checkboxes. Progress stored in localStorage + Supabase `wiki_progress` (keyed as `quest-{gameKey}` with hashed page_id).
+- `src/components/QuestProgressCard.tsx` — self-contained widget: fetches quests, manages progress state, renders compact card + expanded list
+- `src/components/GameDetailContent.tsx` — renders QuestProgressCard for `hasDetailedGameData` games after action cards
+
+### 🔲 FMW-502: Latest Patch + Developer Updates from Game Data Service [TODO]
+Added "Latest Game Update" (featured card for most recent patch) and "Updates from the Developers" (carousel) sections to the game detail page for games with `hasDetailedGameData`. Refactored `GameGuidesCarousel` to fetch the game-data API once and render all three sections (patch, guides, dev updates). Falls back to Gemini GameSpot guide if 404.
+- `src/components/GameGuidesCarousel.tsx` — single fetch, renders LatestPatch + Guides carousel + Dev Updates carousel
+
 ---
 
 ## 🔲 Backlog
@@ -394,6 +414,12 @@ Shows not in `tvRegistry` auto-detect a Fandom wiki via `/api/wiki-detect` and s
 - FMW-405: Game modal route navigation fix
 - FMW-406: Collections board
 - FMW-407: Home section polish (Metacritic badge, unified polls)
+
+**🔲 Sprint 15: Game Data Service Integration**
+- FMW-500: Detailed guides carousel from game-data service
+- FMW-501: Cyberpunk 2077 build planner
+- FMW-502: Latest patch + developer updates sections from game-data service
+- FMW-503: Quest progress tracking from game-data service
 
 ## Upcoming Sprints
 
