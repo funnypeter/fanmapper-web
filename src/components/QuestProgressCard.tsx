@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useGameModal } from "@/components/GameModalContext";
 
 interface Quest {
   title: string;
@@ -49,6 +49,7 @@ export default function QuestProgressCard({
   gameTitle: string;
   gameKey: string;
 }) {
+  const { openWikiArticle } = useGameModal();
   const [quests, setQuests] = useState<QuestsData | null>(null);
   const [completed, setCompleted] = useState<Set<string>>(() => {
     if (typeof window === "undefined") return new Set();
@@ -149,14 +150,7 @@ export default function QuestProgressCard({
 
   // Find first uncompleted quest
   const nextQuest = allQuests.find((q) => !completed.has(q.title));
-  const nextQuestLink = nextQuest
-    ? (() => {
-        const parsed = parseFandomUrl(nextQuest.url);
-        if (parsed) return `/wiki/${gameKey}/${encodeURIComponent(parsed.page)}`;
-        return nextQuest.url;
-      })()
-    : null;
-  const nextQuestExternal = nextQuestLink ? !nextQuestLink.startsWith("/") : false;
+  const nextQuestParsed = nextQuest ? parseFandomUrl(nextQuest.url) : null;
 
   return (
     <div className="card-glass overflow-hidden mb-6">
@@ -197,29 +191,22 @@ export default function QuestProgressCard({
         </div>
 
         {/* Continue with next quest */}
-        {nextQuest && nextQuestLink && (
+        {nextQuest && (
           <div>
             <p className="text-[11px] text-text-muted uppercase tracking-wider mb-1">Continue with</p>
-            {nextQuestExternal ? (
-              <a
-                href={nextQuestLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 group"
-              >
-                <span className="text-sm font-medium group-hover:text-primary transition truncate">
-                  {nextQuest.title}
-                </span>
-                <span className="text-primary text-xs shrink-0">→</span>
-              </a>
-            ) : (
-              <Link href={nextQuestLink} className="flex items-center gap-2 group">
-                <span className="text-sm font-medium group-hover:text-primary transition truncate">
-                  {nextQuest.title}
-                </span>
-                <span className="text-primary text-xs shrink-0">→</span>
-              </Link>
-            )}
+            <button
+              onClick={() => {
+                const parsed = nextQuestParsed;
+                if (parsed) openWikiArticle(parsed.wiki, parsed.page);
+                else window.open(nextQuest.url, "_blank");
+              }}
+              className="flex items-center gap-2 group text-left"
+            >
+              <span className="text-sm font-medium group-hover:text-primary transition truncate">
+                {nextQuest.title}
+              </span>
+              <span className="text-primary text-xs shrink-0">→</span>
+            </button>
           </div>
         )}
         {completedCount === totalCount && totalCount > 0 && (
@@ -245,10 +232,6 @@ export default function QuestProgressCard({
                 {sectionQuests.map((quest) => {
                   const isCompleted = completed.has(quest.title);
                   const parsed = parseFandomUrl(quest.url);
-                  const href = parsed
-                    ? `/wiki/${gameKey}/${encodeURIComponent(parsed.page)}`
-                    : quest.url;
-                  const isExternal = !href.startsWith("/");
 
                   return (
                     <div
@@ -267,23 +250,15 @@ export default function QuestProgressCard({
                           </svg>
                         )}
                       </button>
-                      {isExternal ? (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex-1 text-sm min-w-0 truncate transition ${isCompleted ? "line-through text-text-muted" : "hover:text-primary"}`}
-                        >
-                          {quest.title}
-                        </a>
-                      ) : (
-                        <Link
-                          href={href}
-                          className={`flex-1 text-sm min-w-0 truncate transition ${isCompleted ? "line-through text-text-muted" : "hover:text-primary"}`}
-                        >
-                          {quest.title}
-                        </Link>
-                      )}
+                      <button
+                        onClick={() => {
+                          if (parsed) openWikiArticle(parsed.wiki, parsed.page);
+                          else window.open(quest.url, "_blank");
+                        }}
+                        className={`flex-1 text-sm min-w-0 truncate transition text-left ${isCompleted ? "line-through text-text-muted" : "hover:text-primary"}`}
+                      >
+                        {quest.title}
+                      </button>
                     </div>
                   );
                 })}
