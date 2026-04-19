@@ -69,7 +69,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Playable Characters", items: "Items", weapons: "Weapons", locations: "Locations", bosses: "Bosses", quests: "Archon Quests" },
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Teyvat Interactive Map"],
-    mapUrl: "https://act.hoyolab.com/ys/app/interactive-map/index.html",
+    mapUrl: "https://genshin-impact.fandom.com/wiki/Special:AllMaps",
   },
   "zelda-totk": {
     gameTitle: "Zelda: Tears of the Kingdom",
@@ -80,7 +80,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Tears of the Kingdom Characters", items: "Tears of the Kingdom Items", weapons: "Tears of the Kingdom Weapons", locations: "Tears of the Kingdom Locations", bosses: "Tears of the Kingdom Bosses" },
     infoboxTemplates: { character: "Infobox Character", item: "Infobox Item" },
     maps: ["Hyrule Map"],
-    mapUrl: "https://www.zeldadungeon.net/tears-of-the-kingdom-interactive-map/",
+    mapUrl: "https://zelda.fandom.com/wiki/Special:AllMaps",
   },
   "witcher-3": {
     gameTitle: "The Witcher 3: Wild Hunt",
