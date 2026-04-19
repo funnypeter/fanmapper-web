@@ -215,6 +215,11 @@ Mobile-friendly build planner for Cyberpunk 2077. Card on game detail page opens
 - `src/components/Cyberpunk2077BuildPlanner.tsx` — full planner UI with attribute/perk state management
 - `src/components/BuildPlannerCard.tsx` — entry-point card, renders on game detail when `hasDetailedGameData` is set
 
+### 🔲 FMW-503: Quest Progress Tracking from Game Data Service [TODO]
+Main quest progress card for games with `hasDetailedGameData` whose API response includes a `quests` field. Shows a completion progress bar, "Continue with next quest" link to the Fandom walkthrough (proxied through in-app wiki viewer), and an expandable sectioned quest list with checkboxes. Progress stored in localStorage + Supabase `wiki_progress` (keyed as `quest-{gameKey}` with hashed page_id).
+- `src/components/QuestProgressCard.tsx` — self-contained widget: fetches quests, manages progress state, renders compact card + expanded list
+- `src/components/GameDetailContent.tsx` — renders QuestProgressCard for `hasDetailedGameData` games after action cards
+
 ### 🔲 FMW-502: Latest Patch + Developer Updates from Game Data Service [TODO]
 Added "Latest Game Update" (featured card for most recent patch) and "Updates from the Developers" (carousel) sections to the game detail page for games with `hasDetailedGameData`. Refactored `GameGuidesCarousel` to fetch the game-data API once and render all three sections (patch, guides, dev updates). Falls back to Gemini GameSpot guide if 404.
 - `src/components/GameGuidesCarousel.tsx` — single fetch, renders LatestPatch + Guides carousel + Dev Updates carousel
@@ -414,6 +419,7 @@ Shows not in `tvRegistry` auto-detect a Fandom wiki via `/api/wiki-detect` and s
 - FMW-500: Detailed guides carousel from game-data service
 - FMW-501: Cyberpunk 2077 build planner
 - FMW-502: Latest patch + developer updates sections from game-data service
+- FMW-503: Quest progress tracking from game-data service
 
 ## Upcoming Sprints
 

@@ -14,6 +14,7 @@ import GameSpotArticles from "@/components/GameSpotArticles";
 import GameSpotGuide from "@/components/GameSpotGuide";
 import GameGuidesCarousel from "@/components/GameGuidesCarousel";
 import BuildPlannerCard from "@/components/BuildPlannerCard";
+import QuestProgressCard from "@/components/QuestProgressCard";
 
 interface GameData {
   id: string;
@@ -317,6 +318,10 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
             </Link>
           )}
         </div>
+      )}
+
+      {wikiConfig?.hasDetailedGameData && wikiKey && (
+        <QuestProgressCard gameTitle={game.title} gameKey={wikiKey} />
       )}
 
       {wikiConfig?.availableTools?.includes("cyberpunk-build-planner") && <BuildPlannerCard />}
