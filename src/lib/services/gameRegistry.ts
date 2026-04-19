@@ -48,6 +48,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Skyrim Map"],
     mapUrl: "https://elderscrolls.fandom.com/wiki/Special:AllMaps",
+    hasDetailedGameData: true,
   },
   "fallout-4": {
     gameTitle: "Fallout 4",
