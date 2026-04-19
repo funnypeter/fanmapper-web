@@ -22,6 +22,7 @@ export interface GameWikiConfig {
   maps: string[];
   mapUrl?: string; // External interactive map URL to embed
   hasDetailedGameData?: boolean; // Fetch extra data (guides, etc.) from game-data service
+  availableTools?: string[]; // Game-specific tools to show on detail page (e.g. "build-planner")
 }
 
 export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
@@ -151,6 +152,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     maps: ["Night City 2077"],
     mapUrl: "https://cyberpunk.fandom.com/wiki/Map:Night_City_2077",
     hasDetailedGameData: true,
+    availableTools: ["cyberpunk-build-planner"],
   },
   "minecraft": {
     gameTitle: "Minecraft",

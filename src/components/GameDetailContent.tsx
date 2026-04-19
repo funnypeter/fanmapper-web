@@ -319,7 +319,7 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
         </div>
       )}
 
-      {wikiConfig?.hasDetailedGameData && <BuildPlannerCard />}
+      {wikiConfig?.availableTools?.includes("cyberpunk-build-planner") && <BuildPlannerCard />}
 
       <div className="mb-6"><GameChat gameTitle={game.title} /></div>
       <GameSpotArticles gameTitle={game.title} />
