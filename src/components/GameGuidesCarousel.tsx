@@ -124,7 +124,7 @@ export default function GameGuidesCarousel({ gameTitle }: { gameTitle: string })
   return (
     <>
       {latestPatch && <LatestPatch patch={latestPatch} />}
-      {guides.length > 0 && <ArticleCarousel items={guides} heading="Guides" />}
+      {guides.length > 0 && <ArticleCarousel items={guides} heading="Guides from GameSpot" />}
       {devUpdates.length > 0 && <ArticleCarousel items={devUpdates} heading="Updates from the Developers" />}
     </>
   );

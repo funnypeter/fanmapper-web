@@ -35,7 +35,8 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Characters", items: "Items", weapons: "Weapons", armor: "Armor", locations: "Locations", bosses: "Bosses", quests: "Quests" },
     infoboxTemplates: { character: "Infobox character", weapon: "Infobox weapon", boss: "Infobox boss" },
     maps: ["The Lands Between"],
-    mapUrl: "https://eldenring.wiki.fextralife.com/Interactive+Map",
+    mapUrl: "https://eldenring.fandom.com/wiki/Map:Lands_Between",
+    hasDetailedGameData: true,
   },
   "skyrim": {
     gameTitle: "The Elder Scrolls V: Skyrim",
@@ -46,7 +47,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Skyrim: Characters", items: "Skyrim: Items", weapons: "Skyrim: Weapons", armor: "Skyrim: Armor", locations: "Skyrim: Locations", quests: "Skyrim: Quests" },
     infoboxTemplates: { character: "Infobox Character", weapon: "Infobox Weapon" },
     maps: ["Skyrim Map"],
-    mapUrl: "https://srmap.uesp.net/",
+    mapUrl: "https://elderscrolls.fandom.com/wiki/Special:AllMaps",
   },
   "fallout-4": {
     gameTitle: "Fallout 4",
@@ -57,7 +58,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "Fallout 4 characters", items: "Fallout 4 items", weapons: "Fallout 4 weapons", armor: "Fallout 4 armor and clothing", locations: "Fallout 4 locations", quests: "Fallout 4 quests" },
     infoboxTemplates: { character: "Infobox character", weapon: "Infobox item" },
     maps: ["Commonwealth Map"],
-    mapUrl: "https://fo4map.com/",
+    mapUrl: "https://fallout.fandom.com/wiki/Special:AllMaps",
   },
   "genshin-impact": {
     gameTitle: "Genshin Impact",
@@ -90,6 +91,7 @@ export const GAME_REGISTRY: Record<string, GameWikiConfig> = {
     categories: { characters: "The Witcher 3 characters", weapons: "The Witcher 3 weapons", armor: "The Witcher 3 armor", locations: "The Witcher 3 locations", quests: "The Witcher 3 quests" },
     infoboxTemplates: { character: "Infobox Character" },
     maps: [],
+    hasDetailedGameData: true,
   },
   "gta-v": {
     gameTitle: "Grand Theft Auto V",
