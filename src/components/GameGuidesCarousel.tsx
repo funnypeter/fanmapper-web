@@ -17,8 +17,19 @@ interface GameData {
   "developer-updates"?: Article[];
 }
 
-function toGameDataKey(title: string): string {
+function stripEditionSuffix(title: string): string {
   return title
+    .replace(
+      /\s*[:\-–—]?\s*(Ultimate|Complete|Definitive|Deluxe|Game of the Year|GOTY|Director'?s Cut|Enhanced|Remastered|Anniversary|Legendary|Special|Gold|Platinum|Collector'?s|Premium|Standard|Legacy|Anthology|Trilogy)(\s+Edition)?.*$/i,
+      "",
+    )
+    .replace(/\s*[:\-–—]\s*(Edition|Version).*$/i, "")
+    .trim();
+}
+
+function toGameDataKey(title: string): string {
+  const normalized = stripEditionSuffix(title) || title;
+  return normalized
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
