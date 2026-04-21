@@ -178,7 +178,7 @@ RAG-powered Q&A on the Home page. Gemini extracts topic + query, `detectWiki()` 
 - `src/components/home/HomeWikiChat.tsx` — search bar, rotating hints, collapsible answer, WikiModal
 
 ### ✅ FMW-401: GameSpot Guide Card [DONE]
-Gemini with Google Search grounding finds GameSpot guides for games. Shows a thumbnail card above Track Progress in the game detail modal linking to the guide. 24h cache. Falls back to gemini-2.0-flash on 503.
+Gemini with Google Search grounding finds GameSpot guides for games. Shows a thumbnail card above Track Progress in the game detail modal linking to the guide. 24h cache. Falls back to gemini-2.5-flash-lite on 503.
 - `src/app/api/gamespot/guide/route.ts`
 - `src/components/GameSpotGuide.tsx`
 - Inserted into `src/components/GameDetailContent.tsx`

@@ -3,7 +3,7 @@ import { detectWiki } from "@/lib/services/wikiDetect";
 import { searchWiki, fetchPage } from "@/lib/services/fandom";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
 async function callGemini(apiKey: string, prompt: string): Promise<string | null> {
   for (const model of MODELS) {

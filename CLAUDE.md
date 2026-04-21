@@ -63,7 +63,7 @@ The personalized hub at `/home`. Server component orchestrator + 8 client sectio
 - `src/components/home/HomeNewsFeed.tsx` — Interleaved games/TV news with All/Games/TV filter pills. Fetches `/api/news` + `/api/tv/news`.
 - `src/app/api/tv/news/route.ts` — Generic TV news (TVLine + Deadline RSS, unfiltered). Distinct from `/api/tv/tvguide` which requires a `?show=` param for per-show keyword scoring.
 - `src/components/home/HomeWikiChat.tsx` — **Ask FanCompanion** chatbot search bar. RAG pipeline: user question → Gemini topic extraction → wiki detection → Fandom search + fetch → Gemini answer synthesis. Collapsible answer card with source links that open an in-app WikiModal (fetches through `/api/wiki-page` server proxy to avoid CORS).
-- `src/app/api/wiki-chat/route.ts` — POST endpoint for the chatbot. Two Gemini calls (extract topic, synthesize answer) + Fandom wiki search + page fetch. Tries `gemini-2.5-flash` first, falls back to `gemini-2.0-flash` on 503/429.
+- `src/app/api/wiki-chat/route.ts` — POST endpoint for the chatbot. Two Gemini calls (extract topic, synthesize answer) + Fandom wiki search + page fetch. Tries `gemini-2.5-flash` first, falls back to `gemini-2.5-flash-lite` on 503/429. (Note: `gemini-2.0-flash` is retired — don't use it as a fallback.)
 - `src/app/api/wiki-page/route.ts` — GET proxy for server-side wiki page fetch. Needed because Fandom blocks direct browser requests (CORS). Used by the WikiModal in `HomeWikiChat`.
 - `src/lib/services/wikiDetect.ts` — Shared wiki detection utilities extracted from `wiki-detect/route.ts`. Exports `generateCandidates()`, `checkWikiExists()`, `getWikiName()`, `detectWiki()`. Used by both `/api/wiki-detect` and `/api/wiki-chat`.
 

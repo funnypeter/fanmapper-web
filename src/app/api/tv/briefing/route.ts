@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+const MODELS = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
 
 type GeminiResult =
   | { ok: true; text: string; model: string }
