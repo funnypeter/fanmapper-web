@@ -4,8 +4,6 @@ export const revalidate = 3600;
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
-const BROWSER_UA =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36";
 
 async function callGeminiWithSearch(apiKey: string, prompt: string): Promise<string | null> {
   for (const model of MODELS) {
@@ -39,9 +37,20 @@ async function callGeminiWithSearch(apiKey: string, prompt: string): Promise<str
   return null;
 }
 
+function normalizeGameTitle(title: string): string {
+  return title
+    .replace(
+      /\s*[:\-–—]?\s*(Ultimate|Complete|Definitive|Deluxe|Game of the Year|GOTY|Director'?s Cut|Enhanced|Remastered|Anniversary|Legendary|Special|Gold|Platinum|Collector'?s|Premium|Standard|Legacy|Anthology|Trilogy)(\s+Edition)?.*$/i,
+      "",
+    )
+    .replace(/\s*[:\-–—]\s*(Edition|Version).*$/i, "")
+    .trim();
+}
+
 export async function GET(request: NextRequest) {
-  const gameTitle = request.nextUrl.searchParams.get("game");
-  if (!gameTitle) return NextResponse.json({ found: false });
+  const rawTitle = request.nextUrl.searchParams.get("game");
+  if (!rawTitle) return NextResponse.json({ found: false });
+  const gameTitle = normalizeGameTitle(rawTitle) || rawTitle;
 
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) {
@@ -105,31 +114,10 @@ Return ONLY the JSON, no other text.`;
     return NextResponse.json({ found: false });
   }
 
-  try {
-    const pageRes = await fetch(result.url, {
-      redirect: "follow",
-      headers: {
-        "User-Agent": BROWSER_UA,
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-      },
-    });
-    if (!pageRes.ok) {
-      console.warn(`[gamespot/guide] "${gameTitle}": validation fetch ${pageRes.status} for ${result.url}`);
-      return NextResponse.json({ found: false });
-    }
-    const html = await pageRes.text();
-    const pageTitleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
-    const pageTitle = (pageTitleMatch?.[1] ?? "").toLowerCase();
-    const pageMatchesGame = gameWords.some((w: string) => pageTitle.includes(w));
-    if (!pageMatchesGame) {
-      console.warn(`[gamespot/guide] "${gameTitle}": page title check failed. Title: "${pageTitle}"`);
-      return NextResponse.json({ found: false });
-    }
-  } catch (err) {
-    console.warn(`[gamespot/guide] "${gameTitle}": validation fetch threw`, err);
-    return NextResponse.json({ found: false });
-  }
+  // NOTE: we used to validate by fetching the page and checking its <title>,
+  // but GameSpot returns 403 to server-side fetches. The URL + keyword check
+  // above already filters hallucinations well enough. A rare broken link is
+  // better than never showing any guide.
 
   return NextResponse.json({
     found: true,
