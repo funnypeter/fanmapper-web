@@ -1,5 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
+
+async function callGemini(apiKey: string, prompt: string): Promise<string | null> {
+  for (const model of MODELS) {
+    try {
+      const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.5, maxOutputTokens: 4096 },
+        }),
+      });
+      if (res.status === 503 || res.status === 429) {
+        console.warn(`Briefing: Gemini ${model} returned ${res.status}, trying next model`);
+        continue;
+      }
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        console.error(`Briefing: Gemini ${model} ${res.status}: ${errText.substring(0, 500)}`);
+        return null;
+      }
+      const data = await res.json();
+      const parts = data.candidates?.[0]?.content?.parts ?? [];
+      return parts.map((p: { text?: string }) => p.text ?? "").join("\n");
+    } catch (err) {
+      console.error(`Briefing: Gemini ${model} call failed:`, err);
+      continue;
+    }
+  }
+  return null;
+}
+
 export async function GET(request: NextRequest) {
   const show = request.nextUrl.searchParams.get("show");
   const season = request.nextUrl.searchParams.get("season");
@@ -13,16 +47,7 @@ export async function GET(request: NextRequest) {
   const geminiKey = process.env.GEMINI_API_KEY;
   if (!geminiKey) return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `I'm about to watch "${show}" Season ${season}, Episode ${episode}${episodeTitle ? ` ("${episodeTitle}")` : ""}.
+  const prompt = `I'm about to watch "${show}" Season ${season}, Episode ${episode}${episodeTitle ? ` ("${episodeTitle}")` : ""}.
 
 Give me a spoiler-free episode briefing. DO NOT reveal any plot points, twists, deaths, or surprises from THIS episode. Only cover what happened BEFORE this episode.
 
@@ -32,28 +57,27 @@ Respond in this exact JSON format:
   "characters": ["Character Name - where we last left this character, what they were doing, and what their current motivations are heading into this episode (1-2 sentences each)"]
 }
 
-Include 4-6 key characters. Return ONLY the JSON, no other text.`,
-            }],
-          }],
-          generationConfig: { temperature: 0.5, maxOutputTokens: 4096 },
-        }),
-      }
+Include 4-6 key characters. Return ONLY the JSON, no other text.`;
+
+  const rawText = await callGemini(geminiKey, prompt);
+  if (!rawText) {
+    return NextResponse.json(
+      { error: "AI service is temporarily unavailable. Please try again in a moment." },
+      { status: 502 },
     );
+  }
 
-    if (!res.ok) {
-      return NextResponse.json({ error: "Gemini API error" }, { status: 502 });
-    }
-
-    const data = await res.json();
-    const parts = data.candidates?.[0]?.content?.parts ?? [];
-    const rawText = parts.map((p: { text?: string }) => p.text ?? "").join("\n");
+  try {
     const stripped = rawText.replace(/```json\s*/g, "").replace(/```/g, "").trim();
     const jsonMatch = stripped.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return NextResponse.json({ error: "Failed to parse response" }, { status: 502 });
-
+    if (!jsonMatch) {
+      console.error("Briefing: no JSON object found in response:", rawText.substring(0, 500));
+      return NextResponse.json({ error: "Couldn't parse the briefing response. Try again." }, { status: 502 });
+    }
     const briefing = JSON.parse(jsonMatch[0]);
     return NextResponse.json(briefing);
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error("Briefing: JSON parse failed:", err, "raw:", rawText.substring(0, 500));
+    return NextResponse.json({ error: "Couldn't parse the briefing response. Try again." }, { status: 502 });
   }
 }
