@@ -12,6 +12,7 @@ import AutoWikiCard from "@/components/AutoWikiCard";
 import GameChat from "@/components/GameChat";
 import GameSpotArticles from "@/components/GameSpotArticles";
 import GameSpotGuide from "@/components/GameSpotGuide";
+import LoadoutBuilderCard from "@/components/LoadoutBuilderCard";
 import GameGuidesCarousel from "@/components/GameGuidesCarousel";
 import BuildPlannerCard from "@/components/BuildPlannerCard";
 import QuestProgressCard from "@/components/QuestProgressCard";
@@ -280,6 +281,8 @@ export default function GameDetailContent({ gameId }: { gameId: string }) {
           </button>
         </div>
       )}
+
+      <LoadoutBuilderCard gameTitle={game.title} />
 
       {!wikiConfig?.hasDetailedGameData && <GameSpotGuide gameTitle={game.title} />}
 
