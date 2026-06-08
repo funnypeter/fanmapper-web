@@ -79,12 +79,12 @@ export default function BottomNav() {
               href={item.href}
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all ${
                 isActive
-                  ? "text-primary"
-                  : "text-text-secondary hover:text-foreground"
+                  ? "text-primary-light"
+                  : "text-[#C9D1D9] hover:text-white"
               }`}
             >
               {item.icon(isActive)}
-              <span className={`text-[10px] font-medium ${isActive ? "text-primary" : ""}`}>
+              <span className={`text-[11px] font-medium ${isActive ? "text-primary-light" : ""}`}>
                 {item.label}
               </span>
               {isActive && (

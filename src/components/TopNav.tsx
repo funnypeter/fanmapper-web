@@ -52,8 +52,8 @@ export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
               href={tab.href}
               className={`flex-1 text-center py-3 text-sm font-semibold transition-all relative ${
                 isActive
-                  ? "text-primary"
-                  : "text-text-secondary hover:text-foreground"
+                  ? "text-primary-light"
+                  : "text-[#C9D1D9] hover:text-white"
               }`}
             >
               {tab.label}
