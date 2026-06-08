@@ -170,7 +170,7 @@ export default function HomeWikiChat() {
         {loading && (
           <div className="flex items-center gap-2 mt-4 text-sm text-text-secondary">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            Searching wikis...
+            Getting your answer...
           </div>
         )}
 
