@@ -53,7 +53,7 @@ export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
               className={`flex-1 text-center py-3 text-sm font-semibold transition-all relative ${
                 isActive
                   ? "text-primary"
-                  : "text-text-muted hover:text-foreground"
+                  : "text-text-secondary hover:text-foreground"
               }`}
             >
               {tab.label}

@@ -80,7 +80,7 @@ export default function BottomNav() {
               className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-2xl transition-all ${
                 isActive
                   ? "text-primary"
-                  : "text-text-muted hover:text-text-secondary"
+                  : "text-text-secondary hover:text-foreground"
               }`}
             >
               {item.icon(isActive)}
