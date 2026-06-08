@@ -8,8 +8,8 @@ import { useState } from "react";
 export default function LoadoutBuilderCard({ gameTitle }: { gameTitle: string }) {
   const [open, setOpen] = useState(false);
 
-  const isBlackOps7 = /black ops 7/i.test(gameTitle);
-  if (!isBlackOps7) return null;
+  const isCallOfDuty = /call of duty|black ops/i.test(gameTitle);
+  if (!isCallOfDuty) return null;
 
   return (
     <>
