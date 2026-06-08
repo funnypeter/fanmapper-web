@@ -14,23 +14,18 @@ export default function GameSpotArticles({ gameTitle }: { gameTitle: string }) {
   const [articles, setArticles] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [debug, setDebug] = useState<string | null>(null);
-
   useEffect(() => {
     fetch(`/api/gamespot?game=${encodeURIComponent(gameTitle)}`)
       .then((r) => r.json())
       .then((data) => {
-        if (data?.debug) setDebug(data.debug);
         setArticles(Array.isArray(data) ? data : []);
       })
-      .catch((err) => setDebug(String(err)))
+      .catch(() => setArticles([]))
       .finally(() => setLoading(false));
   }, [gameTitle]);
 
   if (loading) return null;
-  if (articles.length === 0) {
-    return debug ? <p className="text-xs text-error mb-4">GameSpot debug: {debug}</p> : null;
-  }
+  if (articles.length === 0) return null;
 
   return (
     <div className="mb-8">

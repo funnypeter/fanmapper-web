@@ -64,25 +64,31 @@ export async function GET(request: NextRequest) {
   try {
     const titleList = articles.map((a, i) => `${i}: ${a.title}`).join("\n");
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Here are recent GameSpot articles:\n\n${titleList}\n\nI am interested in the game "${gameTitle}". Pick up to 5 articles I would want to read. Be generous — include articles about:\n- This exact game\n- The same franchise or series\n- The same developer or publisher\n- Games in the same genre\n- Gaming industry news that affects this type of game\n- Similar or competing games\n\nIf fewer than 5 are even loosely related, return only those. If none are related, return an empty array.\n\nReturn ONLY a JSON array of index numbers, no other text. Example: [0, 3, 7]`,
-            }],
-          }],
-          generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
-        }),
-      }
-    );
+    const prompt = `Here are recent GameSpot articles:\n\n${titleList}\n\nI am interested in the game "${gameTitle}". Pick up to 5 articles I would want to read. Be generous — include articles about:\n- This exact game\n- The same franchise or series\n- The same developer or publisher\n- Games in the same genre\n- Gaming industry news that affects this type of game\n- Similar or competing games\n\nIf fewer than 5 are even loosely related, return only those. If none are related, return an empty array.\n\nReturn ONLY a JSON array of index numbers, no other text. Example: [0, 3, 7]`;
+
+    const callGemini = (model: string) =>
+      fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.5, maxOutputTokens: 2048 },
+          }),
+        }
+      );
+
+    // Primary model, then fall back to the lighter model when overloaded/rate-limited.
+    let res = await callGemini("gemini-2.5-flash");
+    if (res.status === 503 || res.status === 429) {
+      res = await callGemini("gemini-2.5-flash-lite");
+    }
 
     if (!res.ok) {
-      const errText = await res.text();
-      return NextResponse.json({ debug: `Gemini ${res.status}: ${errText.substring(0, 200)}` });
+      // Gemini still unavailable — degrade quietly (no articles) rather than
+      // surfacing a raw error in the UI.
+      return NextResponse.json([]);
     }
 
     const data = await res.json();
